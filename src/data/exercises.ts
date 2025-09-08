@@ -1,6 +1,13 @@
-import { Exercise } from '@/types/workout';
+import { Exercise } from '@/types/week';
 
-export const exerciseDatabase: Exercise[] = [
+export interface ExerciseDatabase {
+  id: string;
+  name: string;
+  muscleGroup: string;
+  equipment?: string;
+}
+
+export const exerciseDatabase: ExerciseDatabase[] = [
   // Quadríceps
   { id: '1', name: 'Agachamento Livre', muscleGroup: 'Quadríceps', equipment: 'Barra' },
   { id: '2', name: 'Leg Press', muscleGroup: 'Quadríceps', equipment: 'Máquina' },

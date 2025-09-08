@@ -2,95 +2,72 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
+/* Workout Tracker Design System - Earthy Monochromatic Palette
+All colors MUST be HSL. Color palette: #b1a184, #beae91, #ccbb9d, #d9c8aa, #e7d5b7, #f4e3c4, #fff0d1
 */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Core Earthy Palette */
+    --primary: 42 28% 60%;        /* #b1a184 - Main brand */
+    --primary-light: 42 32% 66%;  /* #beae91 - Lighter variant */
+    --primary-soft: 42 36% 72%;   /* #ccbb9d - Soft accent */
+    --primary-pale: 42 40% 77%;   /* #d9c8aa - Pale variant */
+    --primary-cream: 42 48% 82%;  /* #e7d5b7 - Cream variant */
+    --primary-lightest: 42 56% 87%; /* #f4e3c4 - Very light */
+    --background: 42 64% 92%;     /* #fff0d1 - Background */
+    
+    /* UI Colors using earthy palette */
+    --foreground: 42 28% 25%;     /* Dark brown text */
+    --card: 42 64% 92%;           /* Light cream cards */
+    --card-foreground: 42 28% 30%;
+    --card-accent: 42 56% 87%;    /* Card highlights */
+    
+    --popover: 42 64% 92%;
+    --popover-foreground: 42 28% 25%;
+    
+    /* Interactive states */
+    --secondary: 42 48% 82%;      /* Secondary actions */
+    --secondary-foreground: 42 28% 35%;
+    
+    --muted: 42 40% 77%;          /* Muted elements */
+    --muted-foreground: 42 28% 50%;
+    
+    --accent: 42 36% 72%;         /* Accent elements */
+    --accent-foreground: 42 28% 25%;
+    
+    /* Status colors in earthy tones */
+    --destructive: 0 65% 55%;     /* Warm red for delete */
+    --destructive-foreground: 42 64% 92%;
+    
+    --success: 95 35% 45%;        /* Earthy green */
+    --success-foreground: 42 64% 92%;
+    
+    /* Form elements */
+    --border: 42 32% 82%;         /* Subtle borders */
+    --input: 42 48% 87%;          /* Input backgrounds */
+    --ring: 42 28% 60%;           /* Focus rings */
+    
+    /* Design tokens */
+    --radius: 0.75rem;            /* Slightly more rounded */
+    --shadow-soft: 0 4px 20px -4px hsl(42 28% 60% / 0.15);
+    --shadow-card: 0 2px 12px -2px hsl(42 28% 60% / 0.12);
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Gradient definitions */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-light)));
+    --gradient-soft: linear-gradient(180deg, hsl(var(--background)), hsl(var(--primary-lightest)));
+    --gradient-card: linear-gradient(145deg, hsl(var(--card)), hsl(var(--card-accent)));
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
-    --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Sidebar tokens (keeping compatibility) */
+    --sidebar-background: 42 56% 87%;
+    --sidebar-foreground: 42 28% 30%;
+    --sidebar-primary: 42 28% 60%;
+    --sidebar-primary-foreground: 42 64% 92%;
+    --sidebar-accent: 42 48% 82%;
+    --sidebar-accent-foreground: 42 28% 25%;
+    --sidebar-border: 42 32% 82%;
+    --sidebar-ring: 42 28% 60%;
   }
 }
 
@@ -100,6 +77,37 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+}
+
+@layer components {
+  /* Workout specific components */
+  .workout-card {
+    @apply bg-gradient-to-br from-card to-card-accent rounded-xl border border-border/50 shadow-[var(--shadow-card)] transition-[var(--transition-smooth)] hover:shadow-[var(--shadow-soft)] hover:-translate-y-1;
+  }
+  
+  .workout-header {
+    @apply text-2xl font-bold text-foreground tracking-tight;
+  }
+  
+  .workout-subheader {
+    @apply text-lg font-semibold text-muted-foreground;
+  }
+  
+  .muscle-category {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary/10 text-primary border border-primary/20;
+  }
+  
+  .exercise-stat {
+    @apply text-sm font-medium text-muted-foreground;
+  }
+  
+  .day-container {
+    @apply space-y-4 p-6 bg-gradient-to-b from-background to-primary-lightest/20 rounded-2xl border border-border/30 animate-fade-in;
+  }
+  
+  .stats-appear {
+    @apply animate-scale-in;
   }
 }

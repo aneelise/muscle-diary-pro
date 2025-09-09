@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -45,7 +46,7 @@ export const ExerciseForm: React.FC<ExerciseFormProps> = ({
 
   const filteredExercises = exerciseDatabase.filter(exercise => {
     const matchesSearch = exercise.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesMuscle = !selectedMuscleGroup || exercise.muscleGroup === selectedMuscleGroup;
+    const matchesMuscle = !selectedMuscleGroup || selectedMuscleGroup === 'all' || exercise.muscleGroup === selectedMuscleGroup;
     return matchesSearch && matchesMuscle;
   });
 
@@ -101,7 +102,7 @@ export const ExerciseForm: React.FC<ExerciseFormProps> = ({
     setWeight('');
     setNotes('');
     setSearchTerm('');
-    setSelectedMuscleGroup('');
+    setSelectedMuscleGroup('all');
     onClose();
   };
 
@@ -113,7 +114,7 @@ export const ExerciseForm: React.FC<ExerciseFormProps> = ({
     setWeight('');
     setNotes('');
     setSearchTerm('');
-    setSelectedMuscleGroup('');
+    setSelectedMuscleGroup('all');
     onClose();
   };
 
@@ -125,6 +126,9 @@ export const ExerciseForm: React.FC<ExerciseFormProps> = ({
             <Dumbbell className="h-5 w-5 text-primary" />
             Adicionar Exercício
           </DialogTitle>
+          <DialogDescription>
+            Selecione um exercício e configure as séries, repetições e carga utilizada.
+          </DialogDescription>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -136,7 +140,7 @@ export const ExerciseForm: React.FC<ExerciseFormProps> = ({
                 <SelectValue placeholder="Todos os grupos musculares" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os grupos</SelectItem>
+                <SelectItem value="all">Todos os grupos</SelectItem>
                 {muscleGroups.map((group) => (
                   <SelectItem key={group} value={group}>
                     {group}

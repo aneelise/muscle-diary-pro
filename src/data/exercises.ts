@@ -11,15 +11,16 @@ export const exerciseDatabase: ExerciseDatabase[] = [
   // Quadríceps
   { id: '1', name: 'Agachamento Livre', muscleGroup: 'Quadríceps', equipment: 'Barra' },
   { id: '2', name: 'Leg Press', muscleGroup: 'Quadríceps', equipment: 'Máquina' },
-  { id: '3', name: 'Extensão de Pernas', muscleGroup: 'Quadríceps', equipment: 'Máquina' },
-  { id: '4', name: 'Agachamento Búlgaro', muscleGroup: 'Quadríceps', equipment: 'Halteres' },
-  { id: '5', name: 'Avanço', muscleGroup: 'Quadríceps', equipment: 'Halteres' },
+  { id: '3', name: 'Cadeira Extensora', muscleGroup: 'Quadríceps', equipment: 'Máquina' },
+  { id: '4', name: 'Agachamento Hack', muscleGroup: 'Quadríceps', equipment: 'Máquina' },
+  { id: '5', name: 'Bulgaro', muscleGroup: 'Quadríceps', equipment: 'Smith' },
+  { id: '36', name: 'Afundo', muscleGroup: 'Quadríceps', equipment: 'Smith' },
 
   // Costas
   { id: '6', name: 'Barra Fixa', muscleGroup: 'Costas', equipment: 'Peso Corporal' },
-  { id: '7', name: 'Puxada Alta', muscleGroup: 'Costas', equipment: 'Máquina' },
-  { id: '8', name: 'Remada Curvada', muscleGroup: 'Costas', equipment: 'Barra' },
-  { id: '9', name: 'Remada Sentado', muscleGroup: 'Costas', equipment: 'Máquina' },
+  { id: '7', name: 'Puxada Fechada Triangulo', muscleGroup: 'Costas', equipment: 'Máquina' },
+  { id: '8', name: 'Pulldown Polia', muscleGroup: 'Costas', equipment: 'Máquina' },
+  { id: '9', name: 'Remada Baixa Triangulo', muscleGroup: 'Costas', equipment: 'Máquina' },
   { id: '10', name: 'Levantamento Terra', muscleGroup: 'Costas', equipment: 'Barra' },
 
   // Peito
@@ -30,11 +31,11 @@ export const exerciseDatabase: ExerciseDatabase[] = [
   { id: '15', name: 'Crucifixo Reto', muscleGroup: 'Peito', equipment: 'Halteres' },
 
   // Ombros
-  { id: '16', name: 'Desenvolvimento Militar', muscleGroup: 'Ombros', equipment: 'Barra' },
-  { id: '17', name: 'Elevação Lateral', muscleGroup: 'Ombros', equipment: 'Halteres' },
-  { id: '18', name: 'Elevação Frontal', muscleGroup: 'Ombros', equipment: 'Halteres' },
-  { id: '19', name: 'Remada Alta', muscleGroup: 'Ombros', equipment: 'Barra' },
-  { id: '20', name: 'Fly Inverso', muscleGroup: 'Ombros', equipment: 'Halteres' },
+  { id: '16', name: 'Desenvolvimento Halteres', muscleGroup: 'Ombros', equipment: 'Halteres' },
+  { id: '17', name: 'Elevação Lateral Halter', muscleGroup: 'Ombros', equipment: 'Halteres' },
+  { id: '18', name: 'Elevação Lateral Articulada', muscleGroup: 'Ombros', equipment: 'Máquina' },
+  { id: '19', name: 'FacePull Corda', muscleGroup: 'Ombros', equipment: 'Máquina' },
+  { id: '20', name: 'Crucifixo Inverso', muscleGroup: 'Ombros', equipment: 'Máquina' },
 
   // Bíceps
   { id: '21', name: 'Rosca Direta', muscleGroup: 'Bíceps', equipment: 'Barra' },
@@ -48,22 +49,24 @@ export const exerciseDatabase: ExerciseDatabase[] = [
   { id: '27', name: 'Tríceps Pulley', muscleGroup: 'Tríceps', equipment: 'Máquina' },
   { id: '28', name: 'Mergulho', muscleGroup: 'Tríceps', equipment: 'Peso Corporal' },
   { id: '29', name: 'Tríceps Francês', muscleGroup: 'Tríceps', equipment: 'Halteres' },
-  { id: '30', name: 'Kickback', muscleGroup: 'Tríceps', equipment: 'Halteres' },
+  { id: '30', name: 'Tríceps Polia', muscleGroup: 'Tríceps', equipment: 'Halteres' },
 
   // Posterior/Glúteos
   { id: '31', name: 'Stiff', muscleGroup: 'Posterior', equipment: 'Barra' },
   { id: '32', name: 'Mesa Flexora', muscleGroup: 'Posterior', equipment: 'Máquina' },
-  { id: '33', name: 'Glúteo 4 Apoios', muscleGroup: 'Posterior', equipment: 'Peso Corporal' },
-  { id: '34', name: 'Elevação Pélvica', muscleGroup: 'Posterior', equipment: 'Barra' },
-  { id: '35', name: 'Cadeira Abdutora', muscleGroup: 'Posterior', equipment: 'Máquina' },
+  { id: '33', name: 'Levantamento Terra Sumõ', muscleGroup: 'Posterior', equipment: 'Barra' },
+  { id: '34', name: 'Elevação Pélvica', muscleGroup: 'Gluteo', equipment: 'Máquina' },
+  { id: '35', name: 'Cadeira Abdutora', muscleGroup: 'Gluteo', equipment: 'Máquina' },
+  { id: '37', name: 'Cadeira flexora tronco inclinado', muscleGroup: 'Posterior', equipment: 'Máquina' },
+  { id: '38', name: 'Extensão Quadril Cabo Cruzado', muscleGroup: 'Gluteo', equipment: 'Máquina' },
+  { id: '39', name: 'Abdução Quadril Polia', muscleGroup: 'Gluteo', equipment: 'Máquina' },
 ];
 
 export const muscleCategories = [
   'Quadríceps',
-  'Costas', 
+  'Costas e Bíceps', 
   'Peito',
-  'Ombros',
-  'Bíceps',
-  'Tríceps',
-  'Posterior'
+  'Ombros e Tríceps',
+  'Posterior',
+  'Gluteo',
 ];

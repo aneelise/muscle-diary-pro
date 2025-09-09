@@ -55,7 +55,7 @@ const Index = () => {
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold tracking-tight">
-                    Workout Tracker Pro
+                    Treinos+
                   </h1>
                   <p className="text-primary-foreground/80 text-sm">
                     Evolução de cargas por semanas - Acompanhe seu progresso
@@ -98,10 +98,10 @@ const Index = () => {
         <main className="container mx-auto px-4 py-8">
           <div className="mb-8">
             <h2 className="workout-header text-center mb-2">
-              Suas Semanas de Treino
+              Suas semanas de Treino
             </h2>
             <p className="text-center text-muted-foreground">
-              Organize por semanas, adicione dias e acompanhe a evolução das suas cargas
+              Organize por semanas, adicione os dias e acompanhe a evolução das suas cargas
             </p>
           </div>
 
@@ -112,7 +112,7 @@ const Index = () => {
         <footer className="bg-primary/5 border-t border-border/50 mt-12">
           <div className="container mx-auto px-4 py-6">
             <div className="text-center text-sm text-muted-foreground">
-              <p>© 2024 Workout Tracker Pro - Evolua suas cargas, conquiste seus objetivos</p>
+              <p>© 2025 Desenvolvido por Ane Elise | Todos os direitos reservados </p>
             </div>
           </div>
         </footer>

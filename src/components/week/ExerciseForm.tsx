@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Target, Dumbbell, Weight } from 'lucide-react';
 import { exerciseDatabase, ExerciseDatabase } from '@/data/exercises';
 import { useWeek } from '@/contexts/WeekContext';
@@ -43,6 +43,25 @@ export const ExerciseForm: React.FC<ExerciseFormProps> = ({
   const [notes, setNotes] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState('');
+
+  // Load saved muscle group filter for this day
+  useEffect(() => {
+    if (isOpen && dayId) {
+      const savedFilter = localStorage.getItem(`muscle-filter-${dayId}`);
+      if (savedFilter) {
+        setSelectedMuscleGroup(savedFilter);
+      } else {
+        setSelectedMuscleGroup('all');
+      }
+    }
+  }, [isOpen, dayId]);
+
+  // Save muscle group filter when it changes
+  useEffect(() => {
+    if (dayId && selectedMuscleGroup) {
+      localStorage.setItem(`muscle-filter-${dayId}`, selectedMuscleGroup);
+    }
+  }, [dayId, selectedMuscleGroup]);
 
   const filteredExercises = exerciseDatabase.filter(exercise => {
     const matchesSearch = exercise.name.toLowerCase().includes(searchTerm.toLowerCase());

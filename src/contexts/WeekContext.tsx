@@ -75,10 +75,10 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const migrateLocalDataToSupabase = async (localWeeks: Week[]) => {
     try {
       for (const week of localWeeks) {
-        // Insert week
+        // Insert week (use upsert to avoid conflicts)
         const { data: newWeek, error: weekError } = await supabase
           .from('weeks')
-          .insert({
+          .upsert({
             id: week.id,
             name: week.name,
             description: week.description,
@@ -94,7 +94,7 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
         for (const day of week.days) {
           const { data: newDay, error: dayError } = await supabase
             .from('days')
-            .insert({
+            .upsert({
               id: day.id,
               weekId: newWeek.id,
               date: day.date,
@@ -110,7 +110,7 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
           for (const exercise of day.exercises) {
             const { error: exerciseError } = await supabase
               .from('exercises')
-              .insert({
+              .upsert({
                 id: exercise.id,
                 exerciseId: exercise.exerciseId,
                 exerciseName: exercise.exerciseName,
@@ -130,7 +130,28 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Reload data after migration
-      await loadData();
+      const { data: supabaseWeeks } = await supabase
+        .from('weeks')
+        .select(`
+          *,
+          days (
+            *,
+            exercises (*)
+          )
+        `)
+        .eq('user_id', user?.id);
+
+      if (supabaseWeeks) {
+        const formattedWeeks = supabaseWeeks.map(week => ({
+          ...week,
+          days: week.days?.map(day => ({
+            ...day,
+            exercises: day.exercises || []
+          })) || []
+        }));
+        setWeeks(formattedWeeks);
+      }
+
       toast.success('Dados migrados com sucesso!');
     } catch (error) {
       console.error('Migration error:', error);

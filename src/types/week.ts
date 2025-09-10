@@ -29,15 +29,16 @@ export interface Exercise {
 
 export interface WeekContextType {
   weeks: Week[];
-  addWeek: (name: string, description?: string) => void;
-  updateWeek: (id: string, updates: Partial<Week>) => void;
-  deleteWeek: (id: string) => void;
-  addDay: (weekId: string, date: string, dayName: string) => void;
-  updateDay: (dayId: string, updates: Partial<Day>) => void;
-  deleteDay: (dayId: string) => void;
-  addExercise: (dayId: string, exercise: Omit<Exercise, 'id' | 'dayId' | 'createdAt'>) => void;
-  updateExercise: (exerciseId: string, updates: Partial<Exercise>) => void;
-  deleteExercise: (exerciseId: string) => void;
+  isLoading: boolean;
+  addWeek: (name: string, description?: string) => Promise<void>;
+  updateWeek: (id: string, updates: Partial<Week>) => Promise<void>;
+  deleteWeek: (id: string) => Promise<void>;
+  addDay: (weekId: string, date: string, dayName: string) => Promise<void>;
+  updateDay: (dayId: string, updates: Partial<Day>) => Promise<void>;
+  deleteDay: (dayId: string) => Promise<void>;
+  addExercise: (dayId: string, exercise: Omit<Exercise, 'id' | 'dayId' | 'createdAt'>) => Promise<void>;
+  updateExercise: (exerciseId: string, updates: Partial<Exercise>) => Promise<void>;
+  deleteExercise: (exerciseId: string) => Promise<void>;
   getWeekById: (id: string) => Week | undefined;
   getDayById: (id: string) => Day | undefined;
 }

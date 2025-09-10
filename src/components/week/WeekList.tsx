@@ -16,13 +16,14 @@ import {
 import { useToast } from '@/hooks/use-toast';
 
 export const WeekList: React.FC = () => {
-  const { weeks, addWeek } = useWeek();
+  const { weeks, addWeek, isLoading } = useWeek();
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [weekName, setWeekName] = useState('');
   const [weekDescription, setWeekDescription] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
 
-  const handleAddWeek = (e: React.FormEvent) => {
+  const handleAddWeek = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!weekName.trim()) {
@@ -34,16 +35,17 @@ export const WeekList: React.FC = () => {
       return;
     }
 
-    addWeek(weekName.trim(), weekDescription.trim() || undefined);
-    
-    toast({
-      title: "Semana criada!",
-      description: `${weekName} foi adicionada com sucesso.`,
-    });
-
-    setWeekName('');
-    setWeekDescription('');
-    setIsDialogOpen(false);
+    setIsCreating(true);
+    try {
+      await addWeek(weekName.trim(), weekDescription.trim() || undefined);
+      setWeekName('');
+      setWeekDescription('');
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error('Error creating week:', error);
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const totalExercises = weeks.reduce((total, week) => 
@@ -51,6 +53,17 @@ export const WeekList: React.FC = () => {
   );
 
   const totalDays = weeks.reduce((total, week) => total + week.days.length, 0);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Carregando semanas...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -141,8 +154,19 @@ export const WeekList: React.FC = () => {
                   >
                     Cancelar
                   </Button>
-                  <Button type="submit" className="flex-1 bg-primary hover:bg-primary/90">
-                    Criar Semana
+                  <Button 
+                    type="submit" 
+                    className="flex-1 bg-primary hover:bg-primary/90"
+                    disabled={isCreating}
+                  >
+                    {isCreating ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground mr-2"></div>
+                        Criando...
+                      </>
+                    ) : (
+                      'Criar Semana'
+                    )}
                   </Button>
                 </div>
               </form>

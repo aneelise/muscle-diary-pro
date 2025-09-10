@@ -19,23 +19,33 @@ export type Database = {
           date: string | null
           dayName: string | null
           id: string
+          user_id: string | null
           weekId: string
         }
         Insert: {
           date?: string | null
           dayName?: string | null
           id?: string
+          user_id?: string | null
           weekId?: string
         }
         Update: {
           date?: string | null
           dayName?: string | null
           id?: string
+          user_id?: string | null
           weekId?: string
         }
         Relationships: [
           {
             foreignKeyName: "days_week_id_fkey"
+            columns: ["weekId"]
+            isOneToOne: false
+            referencedRelation: "weeks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_days_weeks"
             columns: ["weekId"]
             isOneToOne: false
             referencedRelation: "weeks"
@@ -54,6 +64,7 @@ export type Database = {
           notes: string | null
           reps: number | null
           sets: number | null
+          user_id: string | null
           weight: number | null
         }
         Insert: {
@@ -66,6 +77,7 @@ export type Database = {
           notes?: string | null
           reps?: number | null
           sets?: number | null
+          user_id?: string | null
           weight?: number | null
         }
         Update: {
@@ -78,9 +90,18 @@ export type Database = {
           notes?: string | null
           reps?: number | null
           sets?: number | null
+          user_id?: string | null
           weight?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_exercises_days"
+            columns: ["dayId"]
+            isOneToOne: false
+            referencedRelation: "days"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       usuarios: {
         Row: {
@@ -109,18 +130,21 @@ export type Database = {
           description: string | null
           id: string
           name: string
+          user_id: string | null
         }
         Insert: {
           createdAt?: string | null
           description?: string | null
           id?: string
           name: string
+          user_id?: string | null
         }
         Update: {
           createdAt?: string | null
           description?: string | null
           id?: string
           name?: string
+          user_id?: string | null
         }
         Relationships: []
       }

@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Week, Day, Exercise, WeekContextType } from '@/types/week';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 const WeekContext = createContext<WeekContextType | undefined>(undefined);
 
@@ -13,111 +16,386 @@ export const useWeek = () => {
 
 export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [weeks, setWeeks] = useState<Week[]>([]);
+  const { user } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Load from localStorage on mount
+  // Load data from Supabase and migrate from localStorage if needed
   useEffect(() => {
-    const savedWeeks = localStorage.getItem('workout-weeks');
-    if (savedWeeks) {
-      setWeeks(JSON.parse(savedWeeks));
+    if (!user) {
+      setIsLoading(false);
+      return;
     }
-  }, []);
 
-  // Save to localStorage whenever weeks change
-  useEffect(() => {
-    localStorage.setItem('workout-weeks', JSON.stringify(weeks));
-  }, [weeks]);
+    const loadData = async () => {
+      try {
+        // First, check if user has data in Supabase
+        const { data: supabaseWeeks } = await supabase
+          .from('weeks')
+          .select(`
+            *,
+            days (
+              *,
+              exercises (*)
+            )
+          `)
+          .eq('user_id', user.id);
 
-  const addWeek = (name: string, description?: string) => {
-    const newWeek: Week = {
-      id: Date.now().toString(),
-      name,
-      description,
-      createdAt: new Date().toISOString(),
-      days: [],
-    };
-    setWeeks(prev => [...prev, newWeek]);
-  };
-
-  const updateWeek = (id: string, updates: Partial<Week>) => {
-    setWeeks(prev => prev.map(week => 
-      week.id === id ? { ...week, ...updates } : week
-    ));
-  };
-
-  const deleteWeek = (id: string) => {
-    setWeeks(prev => prev.filter(week => week.id !== id));
-  };
-
-  const addDay = (weekId: string, date: string, dayName: string) => {
-    const newDay: Day = {
-      id: Date.now().toString(),
-      date,
-      dayName,
-      weekId,
-      exercises: [],
-    };
-
-    setWeeks(prev => prev.map(week => 
-      week.id === weekId 
-        ? { ...week, days: [...week.days, newDay] }
-        : week
-    ));
-  };
-
-  const updateDay = (dayId: string, updates: Partial<Day>) => {
-    setWeeks(prev => prev.map(week => ({
-      ...week,
-      days: week.days.map(day => 
-        day.id === dayId ? { ...day, ...updates } : day
-      )
-    })));
-  };
-
-  const deleteDay = (dayId: string) => {
-    setWeeks(prev => prev.map(week => ({
-      ...week,
-      days: week.days.filter(day => day.id !== dayId)
-    })));
-  };
-
-  const addExercise = (dayId: string, exercise: Omit<Exercise, 'id' | 'dayId' | 'createdAt'>) => {
-    const newExercise: Exercise = {
-      ...exercise,
-      id: Date.now().toString(),
-      dayId,
-      createdAt: new Date().toISOString(),
+        if (supabaseWeeks && supabaseWeeks.length > 0) {
+          // User has data in Supabase, use it
+          const formattedWeeks = supabaseWeeks.map(week => ({
+            ...week,
+            days: week.days?.map(day => ({
+              ...day,
+              exercises: day.exercises || []
+            })) || []
+          }));
+          setWeeks(formattedWeeks);
+        } else {
+          // Check localStorage for migration
+          const savedWeeks = localStorage.getItem('workout-weeks');
+          if (savedWeeks) {
+            const localWeeks = JSON.parse(savedWeeks);
+            if (localWeeks.length > 0) {
+              await migrateLocalDataToSupabase(localWeeks);
+              localStorage.removeItem('workout-weeks');
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error loading data:', error);
+        toast.error('Erro ao carregar dados');
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    setWeeks(prev => prev.map(week => ({
-      ...week,
-      days: week.days.map(day => 
-        day.id === dayId 
-          ? { ...day, exercises: [...day.exercises, newExercise] }
-          : day
-      )
-    })));
+    loadData();
+  }, [user]);
+
+  const migrateLocalDataToSupabase = async (localWeeks: Week[]) => {
+    try {
+      for (const week of localWeeks) {
+        // Insert week
+        const { data: newWeek, error: weekError } = await supabase
+          .from('weeks')
+          .insert({
+            id: week.id,
+            name: week.name,
+            description: week.description,
+            createdAt: week.createdAt,
+            user_id: user?.id
+          })
+          .select()
+          .single();
+
+        if (weekError) throw weekError;
+
+        // Insert days
+        for (const day of week.days) {
+          const { data: newDay, error: dayError } = await supabase
+            .from('days')
+            .insert({
+              id: day.id,
+              weekId: newWeek.id,
+              date: day.date,
+              dayName: day.dayName,
+              user_id: user?.id
+            })
+            .select()
+            .single();
+
+          if (dayError) throw dayError;
+
+          // Insert exercises
+          for (const exercise of day.exercises) {
+            const { error: exerciseError } = await supabase
+              .from('exercises')
+              .insert({
+                id: exercise.id,
+                exerciseId: exercise.exerciseId,
+                exerciseName: exercise.exerciseName,
+                muscleGroup: exercise.muscleGroup,
+                sets: exercise.sets,
+                reps: exercise.reps,
+                weight: exercise.weight,
+                notes: exercise.notes,
+                dayId: newDay.id,
+                createdAt: exercise.createdAt,
+                user_id: user?.id
+              });
+
+            if (exerciseError) throw exerciseError;
+          }
+        }
+      }
+
+      // Reload data after migration
+      await loadData();
+      toast.success('Dados migrados com sucesso!');
+    } catch (error) {
+      console.error('Migration error:', error);
+      toast.error('Erro na migração dos dados');
+    }
   };
 
-  const updateExercise = (exerciseId: string, updates: Partial<Exercise>) => {
-    setWeeks(prev => prev.map(week => ({
-      ...week,
-      days: week.days.map(day => ({
-        ...day,
-        exercises: day.exercises.map(exercise => 
-          exercise.id === exerciseId ? { ...exercise, ...updates } : exercise
+  const loadData = async () => {
+    if (!user) return;
+
+    const { data: supabaseWeeks } = await supabase
+      .from('weeks')
+      .select(`
+        *,
+        days (
+          *,
+          exercises (*)
         )
-      }))
-    })));
+      `)
+      .eq('user_id', user.id);
+
+    if (supabaseWeeks) {
+      const formattedWeeks = supabaseWeeks.map(week => ({
+        ...week,
+        days: week.days?.map(day => ({
+          ...day,
+          exercises: day.exercises || []
+        })) || []
+      }));
+      setWeeks(formattedWeeks);
+    }
   };
 
-  const deleteExercise = (exerciseId: string) => {
-    setWeeks(prev => prev.map(week => ({
-      ...week,
-      days: week.days.map(day => ({
-        ...day,
-        exercises: day.exercises.filter(exercise => exercise.id !== exerciseId)
-      }))
-    })));
+  const addWeek = async (name: string, description?: string) => {
+    if (!user) return;
+
+    try {
+      const newWeek = {
+        name,
+        description,
+        user_id: user.id
+      };
+
+      const { data, error } = await supabase
+        .from('weeks')
+        .insert(newWeek)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setWeeks(prev => [...prev, { ...data, days: [] }]);
+      toast.success('Semana criada com sucesso!');
+    } catch (error) {
+      console.error('Error adding week:', error);
+      toast.error('Erro ao criar semana');
+    }
+  };
+
+  const updateWeek = async (id: string, updates: Partial<Week>) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('weeks')
+        .update(updates)
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setWeeks(prev => prev.map(week => 
+        week.id === id ? { ...week, ...updates } : week
+      ));
+      toast.success('Semana atualizada!');
+    } catch (error) {
+      console.error('Error updating week:', error);
+      toast.error('Erro ao atualizar semana');
+    }
+  };
+
+  const deleteWeek = async (id: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('weeks')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setWeeks(prev => prev.filter(week => week.id !== id));
+      toast.success('Semana removida!');
+    } catch (error) {
+      console.error('Error deleting week:', error);
+      toast.error('Erro ao remover semana');
+    }
+  };
+
+  const addDay = async (weekId: string, date: string, dayName: string) => {
+    if (!user) return;
+
+    try {
+      const newDay = {
+        weekId,
+        date,
+        dayName,
+        user_id: user.id
+      };
+
+      const { data, error } = await supabase
+        .from('days')
+        .insert(newDay)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setWeeks(prev => prev.map(week => 
+        week.id === weekId 
+          ? { ...week, days: [...week.days, { ...data, exercises: [] }] }
+          : week
+      ));
+      toast.success('Dia adicionado!');
+    } catch (error) {
+      console.error('Error adding day:', error);
+      toast.error('Erro ao adicionar dia');
+    }
+  };
+
+  const updateDay = async (dayId: string, updates: Partial<Day>) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('days')
+        .update(updates)
+        .eq('id', dayId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setWeeks(prev => prev.map(week => ({
+        ...week,
+        days: week.days.map(day => 
+          day.id === dayId ? { ...day, ...updates } : day
+        )
+      })));
+      toast.success('Dia atualizado!');
+    } catch (error) {
+      console.error('Error updating day:', error);
+      toast.error('Erro ao atualizar dia');
+    }
+  };
+
+  const deleteDay = async (dayId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('days')
+        .delete()
+        .eq('id', dayId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setWeeks(prev => prev.map(week => ({
+        ...week,
+        days: week.days.filter(day => day.id !== dayId)
+      })));
+      toast.success('Dia removido!');
+    } catch (error) {
+      console.error('Error deleting day:', error);
+      toast.error('Erro ao remover dia');
+    }
+  };
+
+  const addExercise = async (dayId: string, exercise: Omit<Exercise, 'id' | 'dayId' | 'createdAt'>) => {
+    if (!user) return;
+
+    try {
+      const newExercise = {
+        ...exercise,
+        dayId,
+        user_id: user.id
+      };
+
+      const { data, error } = await supabase
+        .from('exercises')
+        .insert(newExercise)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setWeeks(prev => prev.map(week => ({
+        ...week,
+        days: week.days.map(day => 
+          day.id === dayId 
+            ? { ...day, exercises: [...day.exercises, data] }
+            : day
+        )
+      })));
+      toast.success('Exercício adicionado!');
+    } catch (error) {
+      console.error('Error adding exercise:', error);
+      toast.error('Erro ao adicionar exercício');
+    }
+  };
+
+  const updateExercise = async (exerciseId: string, updates: Partial<Exercise>) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('exercises')
+        .update(updates)
+        .eq('id', exerciseId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setWeeks(prev => prev.map(week => ({
+        ...week,
+        days: week.days.map(day => ({
+          ...day,
+          exercises: day.exercises.map(exercise => 
+            exercise.id === exerciseId ? { ...exercise, ...updates } : exercise
+          )
+        }))
+      })));
+      toast.success('Exercício atualizado!');
+    } catch (error) {
+      console.error('Error updating exercise:', error);
+      toast.error('Erro ao atualizar exercício');
+    }
+  };
+
+  const deleteExercise = async (exerciseId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('exercises')
+        .delete()
+        .eq('id', exerciseId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setWeeks(prev => prev.map(week => ({
+        ...week,
+        days: week.days.map(day => ({
+          ...day,
+          exercises: day.exercises.filter(exercise => exercise.id !== exerciseId)
+        }))
+      })));
+      toast.success('Exercício removido!');
+    } catch (error) {
+      console.error('Error deleting exercise:', error);
+      toast.error('Erro ao remover exercício');
+    }
   };
 
   const getWeekById = (id: string) => {
@@ -135,6 +413,7 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <WeekContext.Provider value={{
       weeks,
+      isLoading,
       addWeek,
       updateWeek,
       deleteWeek,

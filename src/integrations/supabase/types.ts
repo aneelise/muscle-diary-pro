@@ -14,88 +14,73 @@ export type Database = {
   }
   public: {
     Tables: {
-      cargas: {
+      days: {
         Row: {
-          exercicio_id: string | null
+          date: string | null
+          dayName: string | null
           id: string
-          peso: number | null
-          repeticoes: number | null
-          treino_id: string
+          weekId: string
         }
         Insert: {
-          exercicio_id?: string | null
+          date?: string | null
+          dayName?: string | null
           id?: string
-          peso?: number | null
-          repeticoes?: number | null
-          treino_id?: string
+          weekId?: string
         }
         Update: {
-          exercicio_id?: string | null
+          date?: string | null
+          dayName?: string | null
           id?: string
-          peso?: number | null
-          repeticoes?: number | null
-          treino_id?: string
+          weekId?: string
         }
         Relationships: [
           {
-            foreignKeyName: "cargas_exercicio_id_fkey"
-            columns: ["exercicio_id"]
+            foreignKeyName: "days_week_id_fkey"
+            columns: ["weekId"]
             isOneToOne: false
-            referencedRelation: "exercicios"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cargas_treino_id_fkey"
-            columns: ["treino_id"]
-            isOneToOne: false
-            referencedRelation: "treinos"
+            referencedRelation: "weeks"
             referencedColumns: ["id"]
           },
         ]
       }
-      exercicios: {
+      exercises: {
         Row: {
-          descricao: string | null
+          createdAt: string | null
+          dayId: string | null
+          exerciseId: string | null
+          exerciseName: string | null
           id: string
-          nome: string
+          muscleGroup: string | null
+          notes: string | null
+          reps: number | null
+          sets: number | null
+          weight: number | null
         }
         Insert: {
-          descricao?: string | null
+          createdAt?: string | null
+          dayId?: string | null
+          exerciseId?: string | null
+          exerciseName?: string | null
           id?: string
-          nome?: string
+          muscleGroup?: string | null
+          notes?: string | null
+          reps?: number | null
+          sets?: number | null
+          weight?: number | null
         }
         Update: {
-          descricao?: string | null
+          createdAt?: string | null
+          dayId?: string | null
+          exerciseId?: string | null
+          exerciseName?: string | null
           id?: string
-          nome?: string
+          muscleGroup?: string | null
+          notes?: string | null
+          reps?: number | null
+          sets?: number | null
+          weight?: number | null
         }
         Relationships: []
-      }
-      treinos: {
-        Row: {
-          data: string | null
-          id: string
-          usuario_id: string
-        }
-        Insert: {
-          data?: string | null
-          id?: string
-          usuario_id: string
-        }
-        Update: {
-          data?: string | null
-          id?: string
-          usuario_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "treinos_usuario_id_fkey"
-            columns: ["usuario_id"]
-            isOneToOne: false
-            referencedRelation: "usuarios"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       usuarios: {
         Row: {
@@ -115,6 +100,27 @@ export type Database = {
           email?: string | null
           id?: string
           nome?: string
+        }
+        Relationships: []
+      }
+      weeks: {
+        Row: {
+          createdAt: string | null
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          createdAt?: string | null
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          createdAt?: string | null
+          description?: string | null
+          id?: string
+          name?: string
         }
         Relationships: []
       }

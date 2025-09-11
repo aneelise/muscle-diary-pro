@@ -39,7 +39,8 @@ export const DayCard: React.FC<DayCardProps> = ({ day }) => {
   const [isExerciseFormOpen, setIsExerciseFormOpen] = useState(false);
   
   // Edit states
-  const [editDate, setEditDate] = useState(day.date.split('T')[0]);
+  const initialEditDate = day.date.includes('T') ? day.date.split('T')[0] : day.date;
+  const [editDate, setEditDate] = useState(initialEditDate);
   const [editName, setEditName] = useState(day.dayName);
 
   const handleEditDay = (e: React.FormEvent) => {
@@ -55,7 +56,7 @@ export const DayCard: React.FC<DayCardProps> = ({ day }) => {
     }
 
     updateDay(day.id, {
-      date: new Date(editDate).toISOString(),
+      date: editDate,
       dayName: editName.trim(),
     });
 
@@ -76,7 +77,9 @@ export const DayCard: React.FC<DayCardProps> = ({ day }) => {
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+    const base = dateString.includes('T') ? dateString.split('T')[0] : dateString;
+    // Parse as local time to avoid timezone shifting one day back/forward
+    const date = new Date(`${base}T12:00:00`);
     return date.toLocaleDateString('pt-BR', {
       weekday: 'short',
       day: '2-digit',

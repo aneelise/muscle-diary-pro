@@ -26,32 +26,18 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
-    const loadData = async () => {
+    const init = async () => {
       try {
-        // First, check if user has data in Supabase
-        const { data: supabaseWeeks } = await supabase
+        const { data: existingWeeks, error } = await supabase
           .from('weeks')
-          .select(`
-            *,
-            days (
-              *,
-              exercises (*)
-            )
-          `)
-          .eq('user_id', user.id);
+          .select('id')
+          .eq('user_id', user.id)
+          .limit(1);
+        if (error) throw error;
 
-        if (supabaseWeeks && supabaseWeeks.length > 0) {
-          // User has data in Supabase, use it
-          const formattedWeeks = supabaseWeeks.map(week => ({
-            ...week,
-            days: week.days?.map(day => ({
-              ...day,
-              exercises: day.exercises || []
-            })) || []
-          }));
-          setWeeks(formattedWeeks);
+        if (existingWeeks && existingWeeks.length > 0) {
+          await loadData();
         } else {
-          // Check localStorage for migration
           const savedWeeks = localStorage.getItem('workout-weeks');
           if (savedWeeks) {
             const localWeeks = JSON.parse(savedWeeks);
@@ -60,16 +46,15 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
               localStorage.removeItem('workout-weeks');
             }
           }
+          await loadData();
         }
       } catch (error) {
-        console.error('Error loading data:', error);
+        console.error('Error initializing data:', error);
         toast.error('Erro ao carregar dados');
-      } finally {
-        setIsLoading(false);
       }
     };
 
-    loadData();
+    init();
   }, [user]);
 
   const migrateLocalDataToSupabase = async (localWeeks: Week[]) => {
@@ -97,7 +82,7 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
             .upsert({
               id: day.id,
               weekId: newWeek.id,
-              date: day.date,
+              date: (day.date.includes('T') ? day.date.split('T')[0] : day.date),
               dayName: day.dayName,
               user_id: user?.id
             })
@@ -130,27 +115,7 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Reload data after migration
-      const { data: supabaseWeeks } = await supabase
-        .from('weeks')
-        .select(`
-          *,
-          days (
-            *,
-            exercises (*)
-          )
-        `)
-        .eq('user_id', user?.id);
-
-      if (supabaseWeeks) {
-        const formattedWeeks = supabaseWeeks.map(week => ({
-          ...week,
-          days: week.days?.map(day => ({
-            ...day,
-            exercises: day.exercises || []
-          })) || []
-        }));
-        setWeeks(formattedWeeks);
-      }
+      await loadData();
 
       toast.success('Dados migrados com sucesso!');
     } catch (error) {
@@ -161,27 +126,64 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loadData = async () => {
     if (!user) return;
+    try {
+      setIsLoading(true);
+      const { data: weeksData, error: weeksError } = await supabase
+        .from('weeks')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('createdAt', { ascending: true });
+      if (weeksError) throw weeksError;
 
-    const { data: supabaseWeeks } = await supabase
-      .from('weeks')
-      .select(`
-        *,
-        days (
-          *,
-          exercises (*)
-        )
-      `)
-      .eq('user_id', user.id);
+      const weekIds = (weeksData || []).map((w) => w.id);
+      let daysData: any[] = [];
+      let exercisesData: any[] = [];
 
-    if (supabaseWeeks) {
-      const formattedWeeks = supabaseWeeks.map(week => ({
-        ...week,
-        days: week.days?.map(day => ({
-          ...day,
-          exercises: day.exercises || []
-        })) || []
+      if (weekIds.length > 0) {
+        const { data: dData, error: daysError } = await supabase
+          .from('days')
+          .select('*')
+          .in('weekId', weekIds)
+          .eq('user_id', user.id)
+          .order('date', { ascending: true });
+        if (daysError) throw daysError;
+        daysData = dData || [];
+
+        const dayIds = daysData.map((d) => d.id);
+        if (dayIds.length > 0) {
+          const { data: eData, error: exError } = await supabase
+            .from('exercises')
+            .select('*')
+            .in('dayId', dayIds)
+            .eq('user_id', user.id);
+          if (exError) throw exError;
+          exercisesData = eData || [];
+        }
+      }
+
+      const exercisesByDay = exercisesData.reduce((acc: Record<string, any[]>, ex: any) => {
+        acc[ex.dayId] = acc[ex.dayId] || [];
+        acc[ex.dayId].push(ex);
+        return acc;
+      }, {});
+
+      const daysByWeek = daysData.reduce((acc: Record<string, any[]>, d: any) => {
+        acc[d.weekId] = acc[d.weekId] || [];
+        acc[d.weekId].push({ ...d, exercises: exercisesByDay[d.id] || [] });
+        return acc;
+      }, {});
+
+      const formattedWeeks = (weeksData || []).map((w) => ({
+        ...w,
+        days: daysByWeek[w.id] || [],
       }));
+
       setWeeks(formattedWeeks);
+    } catch (error) {
+      console.error('Error loading data:', error);
+      toast.error('Erro ao carregar dados');
+    } finally {
+      setIsLoading(false);
     }
   };
 

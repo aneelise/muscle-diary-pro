@@ -42,7 +42,12 @@ export const WeekCard: React.FC<WeekCardProps> = ({ week }) => {
   const [editDescription, setEditDescription] = useState(week.description || '');
   
   // Add day states
-  const [dayDate, setDayDate] = useState(new Date().toISOString().split('T')[0]);
+  const getLocalDate = () => {
+    const now = new Date();
+    const tz = now.getTimezoneOffset() * 60000;
+    return new Date(Date.now() - tz).toISOString().slice(0, 10);
+  };
+  const [dayDate, setDayDate] = useState(getLocalDate());
   const [dayName, setDayName] = useState('');
 
   const handleEditWeek = (e: React.FormEvent) => {
@@ -98,7 +103,7 @@ export const WeekCard: React.FC<WeekCardProps> = ({ week }) => {
     });
 
     setDayName('');
-    setDayDate(new Date().toISOString().split('T')[0]);
+    setDayDate(getLocalDate());
     setIsAddDayDialogOpen(false);
   };
 

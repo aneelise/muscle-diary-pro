@@ -27,7 +27,7 @@ export type Database = {
           dayName?: string | null
           id?: string
           user_id?: string | null
-          weekId?: string
+          weekId: string
         }
         Update: {
           date?: string | null
@@ -41,7 +41,7 @@ export type Database = {
             foreignKeyName: "days_weekId_fkey"
             columns: ["weekId"]
             isOneToOne: false
-            referencedRelation: "days"
+            referencedRelation: "weeks"
             referencedColumns: ["id"]
           },
         ]
@@ -88,7 +88,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_exercises_days"
+            foreignKeyName: "exercises_dayId_fkey"
             columns: ["dayId"]
             isOneToOne: false
             referencedRelation: "days"

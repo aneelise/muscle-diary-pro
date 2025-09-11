@@ -38,17 +38,10 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "days_week_id_fkey"
+            foreignKeyName: "days_weekId_fkey"
             columns: ["weekId"]
             isOneToOne: false
-            referencedRelation: "weeks"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_days_weeks"
-            columns: ["weekId"]
-            isOneToOne: false
-            referencedRelation: "weeks"
+            referencedRelation: "days"
             referencedColumns: ["id"]
           },
         ]
@@ -108,19 +101,19 @@ export type Database = {
           created_at: string | null
           email: string | null
           id: string
-          nome: string
+          name: string
         }
         Insert: {
           created_at?: string | null
           email?: string | null
           id?: string
-          nome: string
+          name: string
         }
         Update: {
           created_at?: string | null
           email?: string | null
           id?: string
-          nome?: string
+          name?: string
         }
         Relationships: []
       }
@@ -146,7 +139,15 @@ export type Database = {
           name?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "weeks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

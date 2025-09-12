@@ -109,10 +109,6 @@ export const ExerciseForm: React.FC<ExerciseFormProps> = ({
       notes: notes.trim() || undefined,
     });
 
-    toast({
-      title: "Exercício adicionado!",
-      description: `${exercise.name} foi adicionado com sucesso.`,
-    });
 
     // Reset form
     setSelectedExercise('');

@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Week, Day, Exercise, WeekContextType } from '@/types/week';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 
 const WeekContext = createContext<WeekContextType | undefined>(undefined);
 
@@ -19,11 +19,28 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load data from Supabase and migrate from localStorage if needed
+  // Load data from Supabase and migrate from localStorage if needed, with fast cache hydration
   useEffect(() => {
     if (!user) {
       setIsLoading(false);
       return;
+    }
+
+    // Try hydrate from local cache first to avoid loading flash when returning to the app
+    const cacheKey = `weeks-cache-${user.id}`;
+    const cached = localStorage.getItem(cacheKey);
+    let usedCache = false;
+    if (cached) {
+      try {
+        const cachedWeeks = JSON.parse(cached) as Week[];
+        if (Array.isArray(cachedWeeks)) {
+          setWeeks(cachedWeeks);
+          setIsLoading(false);
+          usedCache = true;
+        }
+      } catch (e) {
+        console.warn('Invalid weeks cache, ignoring');
+      }
     }
 
     const init = async () => {
@@ -36,7 +53,7 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (error) throw error;
 
         if (existingWeeks && existingWeeks.length > 0) {
-          await loadData();
+          await loadData(usedCache);
         } else {
           const savedWeeks = localStorage.getItem('workout-weeks');
           if (savedWeeks) {
@@ -46,11 +63,11 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
               localStorage.removeItem('workout-weeks');
             }
           }
-          await loadData();
+          await loadData(usedCache);
         }
       } catch (error) {
         console.error('Error initializing data:', error);
-        toast.error('Erro ao carregar dados');
+        toast({ title: 'Erro ao carregar dados', variant: 'destructive' });
       }
     };
 
@@ -117,17 +134,17 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Reload data after migration
       await loadData();
 
-      toast.success('Dados migrados com sucesso!');
+      toast({ title: 'Dados migrados com sucesso!' });
     } catch (error) {
       console.error('Migration error:', error);
-      toast.error('Erro na migração dos dados');
+      toast({ title: 'Erro na migração dos dados', variant: 'destructive' });
     }
   };
 
-  const loadData = async () => {
+  const loadData = async (silent = false) => {
     if (!user) return;
     try {
-      setIsLoading(true);
+      if (!silent) setIsLoading(true);
       const { data: weeksData, error: weeksError } = await supabase
         .from('weeks')
         .select('*')
@@ -181,11 +198,19 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setWeeks(formattedWeeks);
     } catch (error) {
       console.error('Error loading data:', error);
-      toast.error('Erro ao carregar dados');
+      toast({ title: 'Erro ao carregar dados', variant: 'destructive' });
     } finally {
-      setIsLoading(false);
+      if (!silent) setIsLoading(false);
     }
   };
+
+  // Persist weeks to local cache for fast hydration on return visits
+  useEffect(() => {
+    if (!user) return;
+    try {
+      localStorage.setItem(`weeks-cache-${user.id}`, JSON.stringify(weeks));
+    } catch {}
+  }, [weeks, user]);
 
   const addWeek = async (name: string, description?: string) => {
     if (!user) return;
@@ -206,10 +231,10 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
 
       setWeeks(prev => [...prev, { ...data, days: [] }]);
-      toast.success('Semana criada com sucesso!');
+      toast({ title: 'Semana criada com sucesso!' });
     } catch (error) {
       console.error('Error adding week:', error);
-      toast.error('Erro ao criar semana');
+      toast({ title: 'Erro ao criar semana', variant: 'destructive' });
     }
   };
 
@@ -228,10 +253,10 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setWeeks(prev => prev.map(week => 
         week.id === id ? { ...week, ...updates } : week
       ));
-      toast.success('Semana atualizada!');
+      toast({ title: 'Semana atualizada!' });
     } catch (error) {
       console.error('Error updating week:', error);
-      toast.error('Erro ao atualizar semana');
+      toast({ title: 'Erro ao atualizar semana', variant: 'destructive' });
     }
   };
 
@@ -248,10 +273,10 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
 
       setWeeks(prev => prev.filter(week => week.id !== id));
-      toast.success('Semana removida!');
+      toast({ title: 'Semana removida!' });
     } catch (error) {
       console.error('Error deleting week:', error);
-      toast.error('Erro ao remover semana');
+      toast({ title: 'Erro ao remover semana', variant: 'destructive' });
     }
   };
 
@@ -279,10 +304,10 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
           ? { ...week, days: [...week.days, { ...data, exercises: [] }] }
           : week
       ));
-      toast.success('Dia adicionado!');
+      toast({ title: 'Dia adicionado!' });
     } catch (error) {
       console.error('Error adding day:', error);
-      toast.error('Erro ao adicionar dia');
+      toast({ title: 'Erro ao adicionar dia', variant: 'destructive' });
     }
   };
 
@@ -304,10 +329,10 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
           day.id === dayId ? { ...day, ...updates } : day
         )
       })));
-      toast.success('Dia atualizado!');
+      toast({ title: 'Dia atualizado!' });
     } catch (error) {
       console.error('Error updating day:', error);
-      toast.error('Erro ao atualizar dia');
+      toast({ title: 'Erro ao atualizar dia', variant: 'destructive' });
     }
   };
 
@@ -327,10 +352,10 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
         ...week,
         days: week.days.filter(day => day.id !== dayId)
       })));
-      toast.success('Dia removido!');
+      toast({ title: 'Dia removido!' });
     } catch (error) {
       console.error('Error deleting day:', error);
-      toast.error('Erro ao remover dia');
+      toast({ title: 'Erro ao remover dia', variant: 'destructive' });
     }
   };
 
@@ -360,10 +385,10 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
             : day
         )
       })));
-      toast.success('Exercício adicionado!');
+      toast({ title: 'Exercício adicionado!' });
     } catch (error) {
       console.error('Error adding exercise:', error);
-      toast.error('Erro ao adicionar exercício');
+      toast({ title: 'Erro ao adicionar exercício', variant: 'destructive' });
     }
   };
 
@@ -388,10 +413,10 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
           )
         }))
       })));
-      toast.success('Exercício atualizado!');
+      toast({ title: 'Exercício atualizado!' });
     } catch (error) {
       console.error('Error updating exercise:', error);
-      toast.error('Erro ao atualizar exercício');
+      toast({ title: 'Erro ao atualizar exercício', variant: 'destructive' });
     }
   };
 
@@ -414,10 +439,10 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
           exercises: day.exercises.filter(exercise => exercise.id !== exerciseId)
         }))
       })));
-      toast.success('Exercício removido!');
+      toast({ title: 'Exercício removido!' });
     } catch (error) {
       console.error('Error deleting exercise:', error);
-      toast.error('Erro ao remover exercício');
+      toast({ title: 'Erro ao remover exercício', variant: 'destructive' });
     }
   };
 

@@ -5,11 +5,12 @@ import { WeekProvider } from "@/contexts/WeekContext";
 import { WeekList } from "@/components/week/WeekList";
 import { useAuth } from "@/hooks/useAuth";
 import { Dumbbell, Calendar, TrendingUp, LogOut, User } from "lucide-react";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -20,9 +21,9 @@ const Index = () => {
   const handleSignOut = async () => {
     const { error } = await signOut();
     if (error) {
-      toast.error("Erro ao sair: " + error.message);
+      toast({ title: "Erro ao sair", description: error.message, variant: "destructive" });
     } else {
-      toast.success("Você foi desconectado com sucesso!");
+      toast({ title: "Desconectado com sucesso!" });
       navigate("/auth");
     }
   };

@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Week, Day, Exercise, WeekContextType } from '@/types/week';
+import { Week, Day, Exercise, Cardio, WeekContextType } from '@/types/week';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 const WeekContext = createContext<WeekContextType | undefined>(undefined);
 
@@ -18,6 +18,7 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [weeks, setWeeks] = useState<Week[]>([]);
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
   // Load data from Supabase and migrate from localStorage if needed, with fast cache hydration
   useEffect(() => {
@@ -155,6 +156,7 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const weekIds = (weeksData || []).map((w) => w.id);
       let daysData: any[] = [];
       let exercisesData: any[] = [];
+      let cardioData: any[] = [];
 
       if (weekIds.length > 0) {
         const { data: dData, error: daysError } = await supabase
@@ -168,6 +170,7 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         const dayIds = daysData.map((d) => d.id);
         if (dayIds.length > 0) {
+          // Load exercises
           const { data: eData, error: exError } = await supabase
             .from('exercises')
             .select('*')
@@ -175,6 +178,15 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
             .eq('user_id', user.id);
           if (exError) throw exError;
           exercisesData = eData || [];
+
+          // Load cardio
+          const { data: cData, error: cardioError } = await supabase
+            .from('cardio')
+            .select('*')
+            .in('day_id', dayIds)
+            .eq('user_id', user.id);
+          if (cardioError) throw cardioError;
+          cardioData = cData || [];
         }
       }
 
@@ -184,9 +196,25 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return acc;
       }, {});
 
+      const cardioByDay = cardioData.reduce((acc: Record<string, any[]>, c: any) => {
+        acc[c.day_id] = acc[c.day_id] || [];
+        acc[c.day_id].push({
+          id: c.id,
+          dayId: c.day_id,
+          cardioType: c.cardio_type,
+          durationMinutes: c.duration_minutes,
+          createdAt: c.created_at
+        });
+        return acc;
+      }, {});
+
       const daysByWeek = daysData.reduce((acc: Record<string, any[]>, d: any) => {
         acc[d.weekId] = acc[d.weekId] || [];
-        acc[d.weekId].push({ ...d, exercises: exercisesByDay[d.id] || [] });
+        acc[d.weekId].push({ 
+          ...d, 
+          exercises: exercisesByDay[d.id] || [],
+          cardio: cardioByDay[d.id] || []
+        });
         return acc;
       }, {});
 
@@ -301,7 +329,7 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       setWeeks(prev => prev.map(week => 
         week.id === weekId 
-          ? { ...week, days: [...week.days, { ...data, exercises: [] }] }
+          ? { ...week, days: [...week.days, { ...data, exercises: [], cardio: [] }] }
           : week
       ));
       toast({ title: 'Dia adicionado!' });
@@ -446,6 +474,103 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const addCardio = async (dayId: string, cardioType: Cardio['cardioType'], durationMinutes: number) => {
+    if (!user) return;
+
+    try {
+      const newCardio = {
+        day_id: dayId,
+        cardio_type: cardioType,
+        duration_minutes: durationMinutes,
+        user_id: user.id
+      };
+
+      const { data, error } = await supabase
+        .from('cardio')
+        .insert(newCardio)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setWeeks(prev => prev.map(week => ({
+        ...week,
+        days: week.days.map(day => 
+          day.id === dayId 
+            ? { 
+                ...day, 
+                cardio: [...(day.cardio || []), {
+                  id: data.id,
+                  dayId: data.day_id,
+                  cardioType: data.cardio_type as Cardio['cardioType'],
+                  durationMinutes: data.duration_minutes,
+                  createdAt: data.created_at
+                }]
+              }
+            : day
+        )
+      })));
+    } catch (error) {
+      console.error('Error adding cardio:', error);
+      toast({ title: 'Erro ao adicionar cardio', variant: 'destructive' });
+    }
+  };
+
+  const updateCardio = async (cardioId: string, updates: Partial<Cardio>) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('cardio')
+        .update({
+          cardio_type: updates.cardioType,
+          duration_minutes: updates.durationMinutes
+        })
+        .eq('id', cardioId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setWeeks(prev => prev.map(week => ({
+        ...week,
+        days: week.days.map(day => ({
+          ...day,
+          cardio: (day.cardio || []).map(cardio => 
+            cardio.id === cardioId ? { ...cardio, ...updates } : cardio
+          )
+        }))
+      })));
+    } catch (error) {
+      console.error('Error updating cardio:', error);
+      toast({ title: 'Erro ao atualizar cardio', variant: 'destructive' });
+    }
+  };
+
+  const deleteCardio = async (cardioId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('cardio')
+        .delete()
+        .eq('id', cardioId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setWeeks(prev => prev.map(week => ({
+        ...week,
+        days: week.days.map(day => ({
+          ...day,
+          cardio: (day.cardio || []).filter(cardio => cardio.id !== cardioId)
+        }))
+      })));
+    } catch (error) {
+      console.error('Error deleting cardio:', error);
+      toast({ title: 'Erro ao remover cardio', variant: 'destructive' });
+    }
+  };
+
   const getWeekById = (id: string) => {
     return weeks.find(week => week.id === id);
   };
@@ -471,6 +596,9 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
       addExercise,
       updateExercise,
       deleteExercise,
+      addCardio,
+      updateCardio,
+      deleteCardio,
       getWeekById,
       getDayById,
     }}>

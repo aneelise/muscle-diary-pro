@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      cardio: {
+        Row: {
+          cardio_type: string
+          created_at: string
+          day_id: string
+          duration_minutes: number
+          id: string
+          user_id: string
+        }
+        Insert: {
+          cardio_type: string
+          created_at?: string
+          day_id: string
+          duration_minutes: number
+          id?: string
+          user_id: string
+        }
+        Update: {
+          cardio_type?: string
+          created_at?: string
+          day_id?: string
+          duration_minutes?: number
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       days: {
         Row: {
           date: string | null

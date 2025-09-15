@@ -4,6 +4,8 @@ import { Day } from '@/types/week';
 import { useWeek } from '@/contexts/WeekContext';
 import { ExerciseCard } from './ExerciseCard';
 import { ExerciseForm } from './ExerciseForm';
+import { CardioForm } from './CardioForm';
+import { CardioCard } from './CardioCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -120,6 +122,11 @@ export const DayCard: React.FC<DayCardProps> = ({ day }) => {
               <div className="text-xs font-medium text-foreground">
                 {day.exercises.length} exercício{day.exercises.length !== 1 ? 's' : ''}
               </div>
+              {day.cardio && day.cardio.length > 0 && (
+                <div className="text-xs text-accent font-medium">
+                  {day.cardio.reduce((total, c) => total + c.durationMinutes, 0)} min cardio
+                </div>
+              )}
             </div>
 
             <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
@@ -213,27 +220,54 @@ export const DayCard: React.FC<DayCardProps> = ({ day }) => {
       {/* Expandable Content */}
       {isExpanded && (
         <div className="p-4 space-y-3 animate-fade-in">
-          {/* Add Exercise Button */}
-          <Button 
-            onClick={() => setIsExerciseFormOpen(true)}
-            className="w-full bg-primary hover:bg-primary/90 text-sm"
-          >
-            <Plus className="h-3 w-3 mr-2" />
-            Adicionar Exercício
-          </Button>
+          {/* Add Exercise and Cardio Buttons */}
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => setIsExerciseFormOpen(true)}
+              className="flex-1 bg-primary hover:bg-primary/90 text-sm"
+            >
+              <Plus className="h-3 w-3 mr-2" />
+              Exercício
+            </Button>
+            <div className="flex-1">
+              <CardioForm dayId={day.id} />
+            </div>
+          </div>
 
-          {/* Exercises List */}
-          {day.exercises.length === 0 ? (
+          {/* Cardio Section */}
+          {day.cardio && day.cardio.length > 0 && (
+            <div className="space-y-2">
+              <h5 className="text-xs font-semibold text-accent uppercase tracking-wide">
+                Cardio
+              </h5>
+              <div className="space-y-2">
+                {day.cardio.map((cardio) => (
+                  <CardioCard key={cardio.id} cardio={cardio} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Exercises Section */}
+          {day.exercises.length > 0 && (
+            <div className="space-y-2">
+              <h5 className="text-xs font-semibold text-foreground uppercase tracking-wide">
+                Exercícios
+              </h5>
+              <div className="space-y-2">
+                {day.exercises.map((exercise) => (
+                  <ExerciseCard key={exercise.id} exercise={exercise} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Empty State */}
+          {day.exercises.length === 0 && (!day.cardio || day.cardio.length === 0) && (
             <div className="text-center py-6 px-4 border border-dashed border-border rounded-lg bg-background/50">
               <p className="text-xs text-muted-foreground">
-                Nenhum exercício cadastrado
+                Nenhum exercício ou cardio cadastrado
               </p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {day.exercises.map((exercise) => (
-                <ExerciseCard key={exercise.id} exercise={exercise} />
-              ))}
             </div>
           )}
 

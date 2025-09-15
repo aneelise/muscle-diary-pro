@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Dumbbell } from "lucide-react";
 
 const Auth = () => {
@@ -21,6 +21,7 @@ const Auth = () => {
   
   const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (user) {
@@ -31,7 +32,7 @@ const Auth = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      toast.error("Por favor, preencha todos os campos");
+      toast({ title: "Campos obrigatórios", description: "Por favor, preencha todos os campos", variant: "destructive" });
       return;
     }
 
@@ -40,16 +41,16 @@ const Auth = () => {
       const { error } = await signIn(email, password);
       if (error) {
         if (error.message.includes("Invalid login credentials")) {
-          toast.error("Credenciais inválidas. Verifique seu email e senha.");
+          toast({ title: "Credenciais inválidas", description: "Verifique seu email e senha.", variant: "destructive" });
         } else {
-          toast.error(error.message);
+          toast({ title: "Erro no login", description: error.message, variant: "destructive" });
         }
       } else {
-        toast.success("Login realizado com sucesso!");
+        toast({ title: "Login realizado com sucesso!" });
         navigate("/");
       }
-    } catch (err) {
-      toast.error("Erro inesperado. Tente novamente.");
+    } catch (error) {
+      toast({ title: "Erro inesperado", description: "Tente novamente.", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -58,17 +59,17 @@ const Auth = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password || !firstName || !lastName) {
-      toast.error("Por favor, preencha todos os campos");
+      toast({ title: "Campos obrigatórios", description: "Por favor, preencha todos os campos", variant: "destructive" });
       return;
     }
     
     if (password !== confirmPassword) {
-      toast.error("As senhas não coincidem");
+      toast({ title: "Senhas não coincidem", description: "As senhas devem ser iguais", variant: "destructive" });
       return;
     }
     
     if (password.length < 6) {
-      toast.error("A senha deve ter pelo menos 6 caracteres");
+      toast({ title: "Senha muito curta", description: "A senha deve ter pelo menos 6 caracteres", variant: "destructive" });
       return;
     }
 
@@ -81,16 +82,16 @@ const Auth = () => {
       
       if (error) {
         if (error.message.includes("User already registered")) {
-          toast.error("Este email já está cadastrado. Tente fazer login.");
+          toast({ title: "Email já cadastrado", description: "Este email já está cadastrado. Tente fazer login.", variant: "destructive" });
         } else {
-          toast.error(error.message);
+          toast({ title: "Erro no cadastro", description: error.message, variant: "destructive" });
         }
       } else {
-        toast.success("Cadastro realizado! Verifique seu email para confirmar a conta.");
+        toast({ title: "Cadastro realizado!", description: "Verifique seu email para confirmar a conta." });
         setActiveTab("login");
       }
-    } catch (err) {
-      toast.error("Erro inesperado. Tente novamente.");
+    } catch (error) {
+      toast({ title: "Erro inesperado", description: "Tente novamente.", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -98,74 +99,71 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary-lightest/30 to-primary-cream/40 flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-6 animate-fade-in">
-        {/* Header */}
-        <div className="text-center space-y-4">
-          <div className="flex justify-center">
-            <div className="p-3 rounded-full bg-gradient-to-br from-primary to-primary-light shadow-lg">
-              <Dumbbell className="h-8 w-8 text-background" />
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <div className="flex justify-center mb-4">
+            <div className="p-3 bg-primary rounded-2xl shadow-[var(--shadow-soft)]">
+              <Dumbbell className="h-8 w-8 text-primary-foreground" />
             </div>
           </div>
-          <div>
-            <h1 className="workout-header">Treinos App</h1>
-            <p className="text-muted-foreground">Organize seus treinos de forma inteligente</p>
-          </div>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            Treinos+
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            Evolução de cargas por semanas
+          </p>
         </div>
 
-        {/* Auth Card */}
-        <Card className="workout-card border-0 shadow-[var(--shadow-soft)]">
+        <Card className="workout-card border-border/50 shadow-[var(--shadow-elegant)]">
           <CardHeader className="text-center pb-4">
-            <CardTitle className="text-xl font-semibold text-foreground">
-              {activeTab === "login" ? "Entrar na sua conta" : "Criar nova conta"}
-            </CardTitle>
-            <CardDescription className="text-muted-foreground">
-              {activeTab === "login" 
-                ? "Acesse seus treinos salvos" 
-                : "Comece a organizar seus treinos hoje"
-              }
+            <CardTitle className="text-xl">Bem-vindo</CardTitle>
+            <CardDescription>
+              Entre na sua conta ou crie uma nova para começar
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-              <TabsList className="grid w-full grid-cols-2 bg-accent/30">
-                <TabsTrigger value="login" className="data-[state=active]:bg-primary data-[state=active]:text-background">
+          <CardContent>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-2 bg-background/50">
+                <TabsTrigger value="login" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                   Entrar
                 </TabsTrigger>
-                <TabsTrigger value="signup" className="data-[state=active]:bg-primary data-[state=active]:text-background">
+                <TabsTrigger value="signup" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                   Cadastrar
                 </TabsTrigger>
               </TabsList>
 
-              {/* Login Form */}
-              <TabsContent value="login">
+              <TabsContent value="login" className="space-y-4 mt-6">
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-foreground font-medium">Email</Label>
+                    <Label htmlFor="email">Email</Label>
                     <Input
                       id="email"
                       type="email"
-                      placeholder="seu@email.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="bg-background/50 border-border/50 focus:bg-background"
+                      placeholder="seu@email.com"
+                      required
+                      className="bg-background/50"
                     />
                   </div>
+
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="text-foreground font-medium">Senha</Label>
+                    <Label htmlFor="password">Senha</Label>
                     <div className="relative">
                       <Input
                         id="password"
                         type={showPassword ? "text" : "password"}
-                        placeholder="Sua senha"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="bg-background/50 border-border/50 focus:bg-background pr-12"
+                        placeholder="••••••••"
+                        required
+                        className="bg-background/50 pr-10"
                       />
                       <Button
                         type="button"
                         variant="ghost"
-                        size="sm"
-                        className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                        size="icon"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                         onClick={() => setShowPassword(!showPassword)}
                       >
                         {showPassword ? (
@@ -176,9 +174,10 @@ const Auth = () => {
                       </Button>
                     </div>
                   </div>
+
                   <Button 
                     type="submit" 
-                    className="w-full bg-gradient-to-r from-primary to-primary-light hover:from-primary-light hover:to-primary text-background font-semibold py-6"
+                    className="w-full bg-gradient-to-r from-primary to-primary-light hover:from-primary/90 hover:to-primary-light/90 transition-all duration-300"
                     disabled={loading}
                   >
                     {loading ? "Entrando..." : "Entrar"}
@@ -186,58 +185,63 @@ const Auth = () => {
                 </form>
               </TabsContent>
 
-              {/* SignUp Form */}
-              <TabsContent value="signup">
+              <TabsContent value="signup" className="space-y-4 mt-6">
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="firstName" className="text-foreground font-medium">Nome</Label>
+                      <Label htmlFor="firstName">Nome</Label>
                       <Input
                         id="firstName"
-                        placeholder="Seu nome"
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
-                        className="bg-background/50 border-border/50 focus:bg-background"
+                        placeholder="João"
+                        required
+                        className="bg-background/50"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="lastName" className="text-foreground font-medium">Sobrenome</Label>
+                      <Label htmlFor="lastName">Sobrenome</Label>
                       <Input
                         id="lastName"
-                        placeholder="Sobrenome"
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
-                        className="bg-background/50 border-border/50 focus:bg-background"
+                        placeholder="Silva"
+                        required
+                        className="bg-background/50"
                       />
                     </div>
                   </div>
+
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email" className="text-foreground font-medium">Email</Label>
+                    <Label htmlFor="signupEmail">Email</Label>
                     <Input
-                      id="signup-email"
+                      id="signupEmail"
                       type="email"
-                      placeholder="seu@email.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="bg-background/50 border-border/50 focus:bg-background"
+                      placeholder="seu@email.com"
+                      required
+                      className="bg-background/50"
                     />
                   </div>
+
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password" className="text-foreground font-medium">Senha</Label>
+                    <Label htmlFor="signupPassword">Senha</Label>
                     <div className="relative">
                       <Input
-                        id="signup-password"
+                        id="signupPassword"
                         type={showPassword ? "text" : "password"}
-                        placeholder="Mínimo 6 caracteres"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="bg-background/50 border-border/50 focus:bg-background pr-12"
+                        placeholder="Mínimo 6 caracteres"
+                        required
+                        className="bg-background/50 pr-10"
                       />
                       <Button
                         type="button"
                         variant="ghost"
-                        size="sm"
-                        className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                        size="icon"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                         onClick={() => setShowPassword(!showPassword)}
                       >
                         {showPassword ? (
@@ -248,23 +252,26 @@ const Auth = () => {
                       </Button>
                     </div>
                   </div>
+
                   <div className="space-y-2">
-                    <Label htmlFor="confirm-password" className="text-foreground font-medium">Confirmar Senha</Label>
+                    <Label htmlFor="confirmPassword">Confirmar Senha</Label>
                     <Input
-                      id="confirm-password"
-                      type="password"
-                      placeholder="Digite a senha novamente"
+                      id="confirmPassword"
+                      type={showPassword ? "text" : "password"}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="bg-background/50 border-border/50 focus:bg-background"
+                      placeholder="Repita sua senha"
+                      required
+                      className="bg-background/50"
                     />
                   </div>
+
                   <Button 
                     type="submit" 
-                    className="w-full bg-gradient-to-r from-primary to-primary-light hover:from-primary-light hover:to-primary text-background font-semibold py-6"
+                    className="w-full bg-gradient-to-r from-primary to-primary-light hover:from-primary/90 hover:to-primary-light/90 transition-all duration-300"
                     disabled={loading}
                   >
-                    {loading ? "Criando conta..." : "Criar conta"}
+                    {loading ? "Cadastrando..." : "Criar Conta"}
                   </Button>
                 </form>
               </TabsContent>
@@ -272,9 +279,8 @@ const Auth = () => {
           </CardContent>
         </Card>
 
-        {/* Footer */}
-        <div className="text-center text-sm text-muted-foreground">
-          <p>Organize seus treinos de forma eficiente e alcance seus objetivos</p>
+        <div className="text-center mt-6 text-xs text-muted-foreground">
+          <p>© 2025 Desenvolvido por Ane Elise</p>
         </div>
       </div>
     </div>

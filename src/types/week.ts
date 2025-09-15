@@ -12,6 +12,15 @@ export interface Day {
   dayName: string; // Segunda-feira, Terça-feira, etc.
   weekId: string;
   exercises: Exercise[];
+  cardio: Cardio[];
+}
+
+export interface Cardio {
+  id: string;
+  dayId: string;
+  cardioType: 'esteira' | 'escada' | 'bike' | 'eliptico';
+  durationMinutes: number;
+  createdAt: string;
 }
 
 export interface Exercise {
@@ -39,6 +48,9 @@ export interface WeekContextType {
   addExercise: (dayId: string, exercise: Omit<Exercise, 'id' | 'dayId' | 'createdAt'>) => Promise<void>;
   updateExercise: (exerciseId: string, updates: Partial<Exercise>) => Promise<void>;
   deleteExercise: (exerciseId: string) => Promise<void>;
+  addCardio: (dayId: string, cardioType: Cardio['cardioType'], durationMinutes: number) => Promise<void>;
+  updateCardio: (cardioId: string, updates: Partial<Cardio>) => Promise<void>;
+  deleteCardio: (cardioId: string) => Promise<void>;
   getWeekById: (id: string) => Week | undefined;
   getDayById: (id: string) => Day | undefined;
 }

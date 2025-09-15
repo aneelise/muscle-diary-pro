@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, Calendar, Plus, Edit3, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, Calendar, Plus, Edit3, Trash2, Timer } from 'lucide-react';
 import { Week } from '@/types/week';
 import { useWeek } from '@/contexts/WeekContext';
 import { DayCard } from './DayCard';
@@ -108,6 +108,22 @@ export const WeekCard: React.FC<WeekCardProps> = ({ week }) => {
   };
 
   const totalExercises = week.days.reduce((total, day) => total + day.exercises.length, 0);
+  
+  // Calculate cardio totals
+  const cardioTotals = week.days.reduce((totals, day) => {
+    (day.cardio || []).forEach(cardio => {
+      totals[cardio.cardioType] = (totals[cardio.cardioType] || 0) + cardio.durationMinutes;
+      totals.total += cardio.durationMinutes;
+    });
+    return totals;
+  }, { esteira: 0, escada: 0, bike: 0, eliptico: 0, total: 0 });
+
+  const cardioTypeLabels = {
+    esteira: 'Esteira',
+    escada: 'Escada',
+    bike: 'Bike',
+    eliptico: 'Elíptico'
+  };
 
   return (
     <div className="workout-card animate-fade-in">
@@ -144,6 +160,12 @@ export const WeekCard: React.FC<WeekCardProps> = ({ week }) => {
               <div className="text-xs text-muted-foreground">
                 {totalExercises} exercício{totalExercises !== 1 ? 's' : ''}
               </div>
+              {cardioTotals.total > 0 && (
+                <div className="text-xs text-accent font-medium flex items-center gap-1 mt-1">
+                  <Timer className="h-3 w-3" />
+                  {cardioTotals.total} min cardio
+                </div>
+              )}
             </div>
 
             <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
@@ -235,6 +257,33 @@ export const WeekCard: React.FC<WeekCardProps> = ({ week }) => {
       {/* Expandable Content */}
       {isExpanded && (
         <div className="p-6 space-y-4 animate-fade-in">
+          {/* Cardio Summary */}
+          {cardioTotals.total > 0 && (
+            <div className="bg-gradient-to-r from-accent/10 to-accent/5 p-4 rounded-lg border border-accent/20">
+              <h4 className="text-sm font-semibold text-accent mb-3 flex items-center gap-2">
+                <Timer className="h-4 w-4" />
+                Resumo de Cardio da Semana
+              </h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {Object.entries(cardioTotals).map(([type, minutes]) => {
+                  if (type === 'total' || minutes === 0) return null;
+                  return (
+                    <div key={type} className="text-center">
+                      <div className="text-lg font-bold text-foreground">{minutes}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {cardioTypeLabels[type as keyof typeof cardioTypeLabels]}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="mt-3 pt-3 border-t border-accent/20 text-center">
+                <div className="text-xl font-bold text-accent">{cardioTotals.total}</div>
+                <div className="text-xs text-muted-foreground">Total de minutos</div>
+              </div>
+            </div>
+          )}
+
           {/* Add Day Button */}
           <Dialog open={isAddDayDialogOpen} onOpenChange={setIsAddDayDialogOpen}>
             <DialogTrigger asChild>

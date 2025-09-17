@@ -3,6 +3,7 @@ import { ChevronDown, ChevronRight, Calendar, Plus, Edit3, Trash2, Timer } from 
 import { Week } from '@/types/week';
 import { useWeek } from '@/contexts/WeekContext';
 import { DayCard } from './DayCard';
+import { WeekStats } from './WeekStats';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -257,6 +258,9 @@ export const WeekCard: React.FC<WeekCardProps> = ({ week }) => {
       {/* Expandable Content */}
       {isExpanded && (
         <div className="p-6 space-y-4 animate-fade-in">
+          {/* Week Stats - Diet Adherence */}
+          <WeekStats weekStartDate={week.days.length > 0 ? week.days[0].date : new Date().toISOString().split('T')[0]} />
+
           {/* Cardio Summary */}
           {cardioTotals.total > 0 && (
             <div className="bg-gradient-to-r from-accent/10 to-accent/5 p-4 rounded-lg border border-accent/20">

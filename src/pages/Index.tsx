@@ -7,7 +7,6 @@ import { WeekStats } from "@/components/week/WeekStats";
 import { useAuth } from "@/hooks/useAuth";
 import { Dumbbell, Calendar, TrendingUp, LogOut, User, Apple, BookOpen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
 
 const Index = () => {
   const { user, loading, signOut } = useAuth();

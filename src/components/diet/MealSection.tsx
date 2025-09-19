@@ -34,6 +34,16 @@ export const MealSection: React.FC<MealSectionProps> = ({ mealType, meals }) => 
     
     setFoodName('');
     setQuantity('');
+                
+                <div className="space-y-2">
+                  <Label htmlFor="time">Horário (opcional)</Label>
+                  <Input
+                    id="time"
+                    type="time"
+                    value={time}
+                    onChange={(e) => setTime(e.target.value)}
+                  />
+                </div>
     setIsAddDialogOpen(false);
   };
 
@@ -109,6 +119,7 @@ export const MealSection: React.FC<MealSectionProps> = ({ mealType, meals }) => 
         </Dialog>
       </div>
 
+  const [time, setTime] = useState('');
       <div className="space-y-3">
         {meals.length === 0 ? (
           <div className="text-center py-8 px-4 border border-dashed border-border rounded-lg bg-background/50">

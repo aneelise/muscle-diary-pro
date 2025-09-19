@@ -2,6 +2,7 @@ import React from 'react';
 import { Utensils, Apple, TrendingUp } from 'lucide-react';
 import { useDiet } from '@/contexts/DietContext';
 import { MealSection } from '@/components/diet/MealSection';
+import { NavBar } from '@/components/layout/NavBar';
 import { MEAL_TYPES } from '@/types/diet';
 
 const Diet = () => {
@@ -27,6 +28,8 @@ const Diet = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary-lightest/30 to-primary-cream/40">
+      <NavBar />
+      
       {/* Header */}
       <header className="bg-gradient-to-r from-primary to-primary-light text-primary-foreground shadow-[var(--shadow-soft)]">
         <div className="container mx-auto px-4 py-6">

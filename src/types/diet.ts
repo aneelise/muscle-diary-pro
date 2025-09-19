@@ -4,6 +4,7 @@ export interface Meal {
   meal_type: 'breakfast' | 'pre_workout' | 'lunch' | 'afternoon_snack' | 'dinner';
   food_name: string;
   quantity: string;
+  time?: string;
   created_at: string;
 }
 

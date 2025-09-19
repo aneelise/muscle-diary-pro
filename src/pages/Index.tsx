@@ -1,12 +1,13 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { WeekProvider } from "@/contexts/WeekContext";
 import { WeekList } from "@/components/week/WeekList";
 import { WeekStats } from "@/components/week/WeekStats";
+import { NavBar } from "@/components/layout/NavBar";
 import { useAuth } from "@/hooks/useAuth";
-import { Dumbbell, Calendar, TrendingUp, LogOut, User, Apple, BookOpen } from "lucide-react";
+import { Dumbbell, Calendar, TrendingUp, LogOut, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
   const { user, loading, signOut } = useAuth();
@@ -47,6 +48,8 @@ const Index = () => {
   return (
     <WeekProvider>
       <div className="min-h-screen bg-gradient-to-br from-background via-primary-lightest/30 to-primary-cream/40">
+        <NavBar />
+        
         {/* Header */}
         <header className="bg-gradient-to-r from-primary to-primary-light text-primary-foreground shadow-[var(--shadow-soft)]">
           <div className="container mx-auto px-4 py-6">
@@ -75,24 +78,6 @@ const Index = () => {
                     <TrendingUp className="h-4 w-4" />
                     <span>Evolução</span>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigate('/diet')}
-                    className="text-primary-foreground hover:bg-primary-foreground/10"
-                  >
-                    <Apple className="h-4 w-4 mr-2" />
-                    Dieta
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigate('/diary')}
-                    className="text-primary-foreground hover:bg-primary-foreground/10"
-                  >
-                    <BookOpen className="h-4 w-4 mr-2" />
-                    Diário
-                  </Button>
                 </div>
                 
                 <div className="flex items-center gap-2 text-sm bg-primary-foreground/10 px-3 py-2 rounded-lg">
@@ -116,27 +101,6 @@ const Index = () => {
 
         {/* Main Content */}
         <main className="container mx-auto px-4 py-8">
-          {/* Mobile Navigation */}
-          <div className="md:hidden flex gap-2 mb-6">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate('/diet')}
-              className="flex-1"
-            >
-              <Apple className="h-4 w-4 mr-2" />
-              Dieta
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate('/diary')}
-              className="flex-1"
-            >
-              <BookOpen className="h-4 w-4 mr-2" />
-              Diário
-            </Button>
-          </div>
 
           <div className="mb-8">
             <h2 className="workout-header text-center mb-2">

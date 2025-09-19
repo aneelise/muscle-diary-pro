@@ -64,7 +64,7 @@ export const DietProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   // Meals functions
-  const addMeal = async (meal_type: Meal['meal_type'], food_name: string, quantity: string) => {
+  const addMeal = async (meal_type: Meal['meal_type'], food_name: string, quantity: string, time?: string) => {
     if (!user) return;
 
     try {
@@ -72,7 +72,8 @@ export const DietProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user_id: user.id,
         meal_type,
         food_name,
-        quantity
+        quantity,
+        time
       };
 
       const { data, error } = await supabase

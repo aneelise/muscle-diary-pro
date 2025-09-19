@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Plus, BookOpen, Calendar, Utensils, TrendingUp } from 'lucide-react';
 import { useDiet } from '@/contexts/DietContext';
 import { DiaryEntryCard } from '@/components/diet/DiaryEntryCard';
+import { NavBar } from '@/components/layout/NavBar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -101,6 +102,8 @@ const Diary = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary-lightest/30 to-primary-cream/40">
+      <NavBar />
+      
       {/* Header */}
       <header className="bg-gradient-to-r from-primary to-primary-light text-primary-foreground shadow-[var(--shadow-soft)]">
         <div className="container mx-auto px-4 py-6">

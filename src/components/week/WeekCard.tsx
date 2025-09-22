@@ -108,7 +108,11 @@ export const WeekCard: React.FC<WeekCardProps> = ({ week }) => {
     setIsAddDayDialogOpen(false);
   };
 
-  const totalExercises = week.days.reduce((total, day) => total + day.exercises.length, 0);
+  const totalExercises = week.days.reduce((total, day) => 
+    total + day.exercises.reduce((exerciseTotal, exercise) => 
+      exerciseTotal + (exercise.sets?.length || 1), 0
+    ), 0
+  );
   
   // Calculate cardio totals
   const cardioTotals = week.days.reduce((totals, day) => {
@@ -130,12 +134,18 @@ export const WeekCard: React.FC<WeekCardProps> = ({ week }) => {
     <div className="workout-card animate-fade-in">
       {/* Week Header */}
       <div className="p-6 border-b border-border/50">
-        <div className="flex items-center justify-between">
+        <div 
+          className="flex items-center justify-between cursor-pointer"
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
           <div className="flex items-center gap-3">
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setIsExpanded(!isExpanded)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsExpanded(!isExpanded);
+              }}
               className="hover:bg-primary/10"
             >
               {isExpanded ? (
@@ -172,6 +182,7 @@ export const WeekCard: React.FC<WeekCardProps> = ({ week }) => {
             <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
               <DialogTrigger asChild>
                 <Button
+                  onClick={(e) => e.stopPropagation()}
                   variant="ghost"
                   size="icon"
                   className="hover:bg-accent/10 hover:text-accent"
@@ -225,6 +236,7 @@ export const WeekCard: React.FC<WeekCardProps> = ({ week }) => {
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button
+                  onClick={(e) => e.stopPropagation()}
                   variant="ghost"
                   size="icon"
                   className="hover:bg-destructive/10 hover:text-destructive"

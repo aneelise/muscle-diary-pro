@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { Edit3, Trash2, Plus, Clock } from 'lucide-react';
-import { Meal, MEAL_TYPE_LABELS } from '@/types/diet';
+import { Edit3, Trash2, Plus, Clock, ChevronDown, ChevronRight } from 'lucide-react';
+import { Meal, FoodSubstitution } from '@/types/diet';
 import { useDiet } from '@/contexts/DietContext';
-import { SubstitutionCard } from './SubstitutionCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -30,19 +29,15 @@ interface MealCardProps {
 }
 
 export const MealCard: React.FC<MealCardProps> = ({ meal }) => {
-  const { updateMeal, deleteMeal } = useDiet();
+  const { updateMeal, deleteMeal, addFoodSubstitution, updateFoodSubstitution, deleteFoodSubstitution } = useDiet();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isSubstitutionsDialogOpen, setIsSubstitutionsDialogOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isAddSubstitutionDialogOpen, setIsAddSubstitutionDialogOpen] = useState(false);
   const [editFoodName, setEditFoodName] = useState(meal.food_name);
   const [editQuantity, setEditQuantity] = useState(meal.quantity);
   const [editTime, setEditTime] = useState(meal.time || '');
   
-  // Substitutions state (using localStorage for now)
-  const [substitutions, setSubstitutions] = useState(() => {
-    const saved = localStorage.getItem(`substitutions-${meal.id}`);
-    return saved ? JSON.parse(saved) : [];
-  });
-  
+  // Add substitution states
   const [newSubstituteName, setNewSubstituteName] = useState('');
   const [newSubstituteQuantity, setNewSubstituteQuantity] = useState('');
 
@@ -62,50 +57,56 @@ export const MealCard: React.FC<MealCardProps> = ({ meal }) => {
 
   const handleDelete = async () => {
     await deleteMeal(meal.id);
-    // Clean up substitutions
-    localStorage.removeItem(`substitutions-${meal.id}`);
   };
 
-  const handleAddSubstitution = (e: React.FormEvent) => {
+  const handleAddSubstitution = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!newSubstituteName.trim() || !newSubstituteQuantity.trim()) return;
     
-    const newSubstitution = {
-      id: crypto.randomUUID(),
-      originalFoodId: meal.id,
-      substituteName: newSubstituteName.trim(),
-      quantity: newSubstituteQuantity.trim(),
-      userId: meal.user_id,
-      createdAt: new Date().toISOString()
-    };
-    
-    const updated = [...substitutions, newSubstitution];
-    setSubstitutions(updated);
-    localStorage.setItem(`substitutions-${meal.id}`, JSON.stringify(updated));
+    await addFoodSubstitution(meal.id, newSubstituteName.trim(), newSubstituteQuantity.trim());
     
     setNewSubstituteName('');
     setNewSubstituteQuantity('');
+    setIsAddSubstitutionDialogOpen(false);
   };
 
-  const handleUpdateSubstitution = (id: string, updates: any) => {
-    const updated = substitutions.map((sub: any) => 
-      sub.id === id ? { ...sub, ...updates } : sub
-    );
-    setSubstitutions(updated);
-    localStorage.setItem(`substitutions-${meal.id}`, JSON.stringify(updated));
+  const handleUpdateSubstitution = async (id: string, updates: Partial<FoodSubstitution>) => {
+    await updateFoodSubstitution(id, updates);
   };
 
-  const handleDeleteSubstitution = (id: string) => {
-    const updated = substitutions.filter((sub: any) => sub.id !== id);
-    setSubstitutions(updated);
-    localStorage.setItem(`substitutions-${meal.id}`, JSON.stringify(updated));
+  const handleDeleteSubstitution = async (id: string) => {
+    await deleteFoodSubstitution(id);
   };
+
+  const substitutions = meal.substitutions || [];
 
   return (
-    <div className="workout-card p-4 group hover:shadow-md transition-all">
-      <div className="flex items-center justify-between">
-        <div className="flex-1">
+    <div className="workout-card group hover:shadow-md transition-all">
+      <div 
+        className="flex items-center justify-between p-4 cursor-pointer"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        <div className="flex items-center gap-3 flex-1">
+          {substitutions.length > 0 && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsExpanded(!isExpanded);
+              }}
+            >
+              {isExpanded ? (
+                <ChevronDown className="h-3 w-3" />
+              ) : (
+                <ChevronRight className="h-3 w-3" />
+              )}
+            </Button>
+          )}
+          
+          <div className="flex-1">
           <h4 className="font-medium text-foreground">{meal.food_name}</h4>
           <p className="text-sm text-muted-foreground">{meal.quantity}</p>
           {meal.time && (
@@ -119,12 +120,14 @@ export const MealCard: React.FC<MealCardProps> = ({ meal }) => {
               {substitutions.length} substituição{substitutions.length !== 1 ? 'ões' : ''}
             </p>
           )}
+          </div>
         </div>
 
         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <Dialog open={isSubstitutionsDialogOpen} onOpenChange={setIsSubstitutionsDialogOpen}>
+          <Dialog open={isAddSubstitutionDialogOpen} onOpenChange={setIsAddSubstitutionDialogOpen}>
             <DialogTrigger asChild>
               <Button
+                onClick={(e) => e.stopPropagation()}
                 variant="ghost"
                 size="icon"
                 className="hover:bg-success/10 hover:text-success h-8 w-8"
@@ -134,15 +137,12 @@ export const MealCard: React.FC<MealCardProps> = ({ meal }) => {
               </Button>
             </DialogTrigger>
             
-            <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-md">
               <DialogHeader>
-                <DialogTitle>Substituições - {meal.food_name}</DialogTitle>
+                <DialogTitle>Adicionar Substituição - {meal.food_name}</DialogTitle>
               </DialogHeader>
               
-              <div className="space-y-4">
-                {/* Add new substitution */}
-                <form onSubmit={handleAddSubstitution} className="space-y-3 p-4 bg-muted/30 rounded-lg">
-                  <h4 className="font-medium text-sm">Adicionar Substituição</h4>
+              <form onSubmit={handleAddSubstitution} className="space-y-4">
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-2">
                       <Label htmlFor="substituteName">Alimento</Label>
@@ -163,37 +163,29 @@ export const MealCard: React.FC<MealCardProps> = ({ meal }) => {
                       />
                     </div>
                   </div>
-                  <Button type="submit" size="sm" className="w-full">
+                
+                <div className="flex gap-2 pt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsAddSubstitutionDialogOpen(false)}
+                    className="flex-1"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button type="submit" className="flex-1">
                     <Plus className="h-3 w-3 mr-2" />
                     Adicionar
                   </Button>
-                </form>
-                
-                {/* List substitutions */}
-                <div className="space-y-2">
-                  <h4 className="font-medium text-sm">Substituições Cadastradas</h4>
-                  {substitutions.length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-4">
-                      Nenhuma substituição cadastrada
-                    </p>
-                  ) : (
-                    substitutions.map((substitution: any) => (
-                      <SubstitutionCard
-                        key={substitution.id}
-                        substitution={substitution}
-                        onUpdate={handleUpdateSubstitution}
-                        onDelete={handleDeleteSubstitution}
-                      />
-                    ))
-                  )}
                 </div>
-              </div>
+              </form>
             </DialogContent>
           </Dialog>
           
           <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
             <DialogTrigger asChild>
               <Button
+                onClick={(e) => e.stopPropagation()}
                 variant="ghost"
                 size="icon"
                 className="hover:bg-accent/10 hover:text-accent h-8 w-8"
@@ -259,6 +251,7 @@ export const MealCard: React.FC<MealCardProps> = ({ meal }) => {
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button
+                onClick={(e) => e.stopPropagation()}
                 variant="ghost"
                 size="icon"
                 className="hover:bg-destructive/10 hover:text-destructive h-8 w-8"
@@ -286,6 +279,31 @@ export const MealCard: React.FC<MealCardProps> = ({ meal }) => {
           </AlertDialog>
         </div>
       </div>
+      
+      {/* Substitutions List */}
+      {isExpanded && substitutions.length > 0 && (
+        <div className="px-4 pb-4 space-y-2 border-t border-border/30">
+          <h5 className="text-sm font-medium text-foreground mt-3 mb-2">Substituições:</h5>
+          {substitutions.map((substitution) => (
+            <div key={substitution.id} className="flex items-center justify-between p-2 bg-muted/30 rounded-lg">
+              <div>
+                <span className="text-sm font-medium text-foreground">{substitution.substitute_name}</span>
+                <span className="text-xs text-muted-foreground ml-2">({substitution.quantity})</span>
+              </div>
+              <div className="flex gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="hover:bg-destructive/10 hover:text-destructive h-6 w-6"
+                  onClick={() => handleDeleteSubstitution(substitution.id)}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

@@ -1,15 +1,46 @@
-import React from 'react';
-import { TrendingUp, Calendar, Camera, Dumbbell } from 'lucide-react';
+import React, { useState } from 'react';
+import { TrendingUp, Calendar, Camera, Dumbbell, Plus } from 'lucide-react';
 import { EvolutionProvider, useEvolution } from '@/contexts/EvolutionContext';
-import { DaySection } from '@/components/evolution/DaySection';
+import { WeekSection } from '@/components/evolution/WeekSection';
 import { PhotoGallery } from '@/components/evolution/PhotoGallery';
 import { NavBar } from '@/components/layout/NavBar';
-import { DayOfWeek } from '@/types/evolution';
-
-const DAYS_OF_WEEK: DayOfWeek[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 
 const EvolutionContent: React.FC = () => {
-  const { exercises, photos, isLoading } = useEvolution();
+  const { weeks, exercises, photos, addWeek, isLoading } = useEvolution();
+  const { toast } = useToast();
+  const [isAddWeekDialogOpen, setIsAddWeekDialogOpen] = useState(false);
+  const [weekName, setWeekName] = useState('');
+  const [weekDescription, setWeekDescription] = useState('');
+
+  const handleAddWeek = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!weekName.trim()) {
+      toast({
+        title: "Nome obrigatório",
+        description: "Por favor, insira um nome para a semana.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    await addWeek(weekName.trim(), weekDescription.trim() || undefined);
+    setWeekName('');
+    setWeekDescription('');
+    setIsAddWeekDialogOpen(false);
+  };
 
   if (isLoading) {
     return (
@@ -76,11 +107,11 @@ const EvolutionContent: React.FC = () => {
           <div className="workout-card p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-primary/10">
-                <Calendar className="h-4 w-4 text-primary" />
+                <TrendingUp className="h-4 w-4 text-primary" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-primary">7</div>
-                <div className="text-xs text-muted-foreground">Dias da Semana</div>
+                <div className="text-2xl font-bold text-primary">{weeks.length}</div>
+                <div className="text-xs text-muted-foreground">Semanas</div>
               </div>
             </div>
           </div>
@@ -108,19 +139,91 @@ const EvolutionContent: React.FC = () => {
               </div>
             </div>
           </div>
+          
+          <div className="workout-card p-4">
+            <Dialog open={isAddWeekDialogOpen} onOpenChange={setIsAddWeekDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full h-full bg-primary hover:bg-primary/90 text-primary-foreground">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nova Semana
+                </Button>
+              </DialogTrigger>
+              
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Adicionar Semana de Evolução</DialogTitle>
+                </DialogHeader>
+                
+                <form onSubmit={handleAddWeek} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="weekName">Nome da Semana</Label>
+                    <Input
+                      id="weekName"
+                      value={weekName}
+                      onChange={(e) => setWeekName(e.target.value)}
+                      placeholder="Ex: Semana 1, Semana de Força..."
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="weekDescription">Descrição (opcional)</Label>
+                    <Textarea
+                      id="weekDescription"
+                      value={weekDescription}
+                      onChange={(e) => setWeekDescription(e.target.value)}
+                      placeholder="Ex: Foco em hipertrofia, aumento de cargas..."
+                      rows={2}
+                    />
+                  </div>
+
+                  <div className="flex gap-2 pt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsAddWeekDialogOpen(false)}
+                      className="flex-1"
+                    >
+                      Cancelar
+                    </Button>
+                    <Button type="submit" className="flex-1">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Adicionar
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
 
-        {/* Weekly Training Schedule */}
+        {/* Evolution Weeks */}
         <div className="space-y-6 mb-12">
-          <h3 className="text-xl font-semibold text-foreground text-center">
-            Cronograma Semanal de Treinos
-          </h3>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {DAYS_OF_WEEK.map((day) => (
-              <DaySection key={day} dayOfWeek={day} />
-            ))}
-          </div>
+          {weeks.length === 0 ? (
+            <div className="text-center py-12 px-4 border-2 border-dashed border-border rounded-2xl bg-background/50">
+              <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                Nenhuma semana cadastrada
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                Crie sua primeira semana para começar a acompanhar sua evolução
+              </p>
+              <Dialog open={isAddWeekDialogOpen} onOpenChange={setIsAddWeekDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-primary hover:bg-primary/90">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Criar Primeira Semana
+                  </Button>
+                </DialogTrigger>
+              </Dialog>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {weeks.map((week) => (
+                <WeekSection key={week.id} week={week} />
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Photo Gallery */}

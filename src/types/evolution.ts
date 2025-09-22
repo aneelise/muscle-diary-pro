@@ -1,12 +1,32 @@
+export interface EvolutionWeek {
+  id: string;
+  user_id: string;
+  name: string;
+  description?: string;
+  order_index: number;
+  exercises: EvolutionExercise[];
+  created_at: string;
+}
+
 export interface EvolutionExercise {
   id: string;
+  evolution_week_id: string;
+  day_of_week: DayOfWeek;
   name: string;
-  sets: number;
-  reps: number;
+  sets: EvolutionExerciseSet[];
   notes?: string;
-  dayOfWeek: DayOfWeek;
-  userId: string;
-  createdAt: string;
+  user_id: string;
+  created_at: string;
+}
+
+export interface EvolutionExerciseSet {
+  id: string;
+  evolution_exercise_id: string;
+  set_number: number;
+  reps: number;
+  weight: number;
+  user_id: string;
+  created_at: string;
 }
 
 export interface EvolutionPhoto {
@@ -51,15 +71,25 @@ export const DAY_LABELS: Record<DayOfWeek, string> = {
 };
 
 export interface EvolutionContextType {
+  weeks: EvolutionWeek[];
   exercises: EvolutionExercise[];
   photos: EvolutionPhoto[];
   isLoading: boolean;
   
+  // Weeks
+  addWeek: (name: string, description?: string) => Promise<void>;
+  updateWeek: (id: string, updates: Partial<EvolutionWeek>) => Promise<void>;
+  deleteWeek: (id: string) => Promise<void>;
+  
   // Exercises
-  addExercise: (dayOfWeek: DayOfWeek, name: string, sets: number, reps: number, notes?: string) => Promise<void>;
+  addExercise: (weekId: string, dayOfWeek: DayOfWeek, name: string, notes?: string) => Promise<void>;
   updateExercise: (id: string, updates: Partial<EvolutionExercise>) => Promise<void>;
   deleteExercise: (id: string) => Promise<void>;
-  getExercisesByDay: (dayOfWeek: DayOfWeek) => EvolutionExercise[];
+  
+  // Exercise Sets
+  addExerciseSet: (exerciseId: string, setNumber: number, reps: number, weight: number) => Promise<void>;
+  updateExerciseSet: (id: string, updates: Partial<EvolutionExerciseSet>) => Promise<void>;
+  deleteExerciseSet: (id: string) => Promise<void>;
   
   // Photos
   addPhoto: (file: File, description?: string) => Promise<void>;

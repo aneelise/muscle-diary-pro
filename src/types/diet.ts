@@ -1,10 +1,28 @@
 export interface Meal {
   id: string;
   user_id: string;
-  meal_type: 'breakfast' | 'pre_workout' | 'lunch' | 'afternoon_snack' | 'dinner';
+  meal_type: string;
   food_name: string;
   quantity: string;
   time?: string;
+  substitutions?: FoodSubstitution[];
+  created_at: string;
+}
+
+export interface FoodSubstitution {
+  id: string;
+  user_id: string;
+  meal_id: string;
+  substitute_name: string;
+  quantity: string;
+  created_at: string;
+}
+
+export interface CustomMealType {
+  id: string;
+  user_id: string;
+  name: string;
+  order_index: number;
   created_at: string;
 }
 
@@ -25,13 +43,24 @@ export interface DiaryEntry {
 
 export interface DietContextType {
   meals: Meal[];
+  customMealTypes: CustomMealType[];
   diaryEntries: DiaryEntry[];
   isLoading: boolean;
   
   // Meals
-  addMeal: (meal_type: Meal['meal_type'], food_name: string, quantity: string) => Promise<void>;
+  addMeal: (meal_type: string, food_name: string, quantity: string, time?: string) => Promise<void>;
   updateMeal: (id: string, updates: Partial<Meal>) => Promise<void>;
   deleteMeal: (id: string) => Promise<void>;
+  
+  // Custom Meal Types
+  addCustomMealType: (name: string) => Promise<void>;
+  updateCustomMealType: (id: string, updates: Partial<CustomMealType>) => Promise<void>;
+  deleteCustomMealType: (id: string) => Promise<void>;
+  
+  // Food Substitutions
+  addFoodSubstitution: (mealId: string, substituteName: string, quantity: string) => Promise<void>;
+  updateFoodSubstitution: (id: string, updates: Partial<FoodSubstitution>) => Promise<void>;
+  deleteFoodSubstitution: (id: string) => Promise<void>;
   
   // Diary
   addDiaryEntry: (date: string, entry: Partial<DiaryEntry>) => Promise<void>;
@@ -44,12 +73,10 @@ export interface DietContextType {
   getFreeMealHistory: () => DiaryEntry[];
 }
 
-export const MEAL_TYPE_LABELS = {
-  breakfast: 'Café da manhã',
-  pre_workout: 'Pré-treino',
-  lunch: 'Almoço',
-  afternoon_snack: 'Café da tarde',
-  dinner: 'Jantar'
-} as const;
-
-export const MEAL_TYPES = Object.keys(MEAL_TYPE_LABELS) as Array<keyof typeof MEAL_TYPE_LABELS>;
+export const DEFAULT_MEAL_TYPES = [
+  { name: 'Café da manhã', order_index: 0 },
+  { name: 'Pré-treino', order_index: 1 },
+  { name: 'Almoço', order_index: 2 },
+  { name: 'Café da tarde', order_index: 3 },
+  { name: 'Jantar', order_index: 4 }
+];

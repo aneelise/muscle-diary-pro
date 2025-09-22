@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Calendar } from 'lucide-react';
-import { DayOfWeek, DAY_LABELS } from '@/types/evolution';
+import { DayOfWeek, DAY_LABELS, EvolutionExercise } from '@/types/evolution';
 import { useEvolution } from '@/contexts/EvolutionContext';
 import { ExerciseCard } from './ExerciseCard';
 import { Button } from '@/components/ui/button';
@@ -17,37 +17,32 @@ import {
 
 interface DaySectionProps {
   dayOfWeek: DayOfWeek;
+  weekId: string;
+  exercises: EvolutionExercise[];
 }
 
-export const DaySection: React.FC<DaySectionProps> = ({ dayOfWeek }) => {
-  const { getExercisesByDay, addExercise } = useEvolution();
+export const DaySection: React.FC<DaySectionProps> = ({ dayOfWeek, weekId, exercises }) => {
+  const { addExercise } = useEvolution();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   
   // Form states
   const [exerciseName, setExerciseName] = useState('');
-  const [sets, setSets] = useState('');
-  const [reps, setReps] = useState('');
   const [notes, setNotes] = useState('');
-
-  const exercises = getExercisesByDay(dayOfWeek);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!exerciseName.trim() || !sets || !reps) return;
+    if (!exerciseName.trim()) return;
 
     await addExercise(
+      weekId,
       dayOfWeek,
       exerciseName.trim(),
-      parseInt(sets),
-      parseInt(reps),
       notes.trim() || undefined
     );
     
     // Reset form
     setExerciseName('');
-    setSets('');
-    setReps('');
     setNotes('');
     setIsAddDialogOpen(false);
   };
@@ -90,34 +85,6 @@ export const DaySection: React.FC<DaySectionProps> = ({ dayOfWeek }) => {
                   placeholder="Ex: Supino reto, Agachamento..."
                   required
                 />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label htmlFor="sets">Séries</Label>
-                  <Input
-                    id="sets"
-                    type="number"
-                    min="1"
-                    value={sets}
-                    onChange={(e) => setSets(e.target.value)}
-                    placeholder="Ex: 3"
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="reps">Repetições</Label>
-                  <Input
-                    id="reps"
-                    type="number"
-                    min="1"
-                    value={reps}
-                    onChange={(e) => setReps(e.target.value)}
-                    placeholder="Ex: 12"
-                    required
-                  />
-                </div>
               </div>
               
               <div className="space-y-2">

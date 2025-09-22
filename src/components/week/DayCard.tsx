@@ -93,12 +93,18 @@ export const DayCard: React.FC<DayCardProps> = ({ day }) => {
     <div className="workout-card bg-gradient-to-br from-card-accent to-card">
       {/* Day Header */}
       <div className="p-4 border-b border-border/30">
-        <div className="flex items-center justify-between">
+        <div 
+          className="flex items-center justify-between cursor-pointer"
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
           <div className="flex items-center gap-3">
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setIsExpanded(!isExpanded)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsExpanded(!isExpanded);
+              }}
               className="hover:bg-primary/10 h-8 w-8"
             >
               {isExpanded ? (
@@ -120,7 +126,7 @@ export const DayCard: React.FC<DayCardProps> = ({ day }) => {
           <div className="flex items-center gap-2">
             <div className="text-right mr-2">
               <div className="text-xs font-medium text-foreground">
-                {day.exercises.length} exercício{day.exercises.length !== 1 ? 's' : ''}
+                {day.exercises.reduce((total, ex) => total + (ex.sets?.length || 1), 0)} série{day.exercises.reduce((total, ex) => total + (ex.sets?.length || 1), 0) !== 1 ? 's' : ''}
               </div>
               {day.cardio && day.cardio.length > 0 && (
                 <div className="text-xs text-accent font-medium">
@@ -132,6 +138,7 @@ export const DayCard: React.FC<DayCardProps> = ({ day }) => {
             <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
               <DialogTrigger asChild>
                 <Button
+                  onClick={(e) => e.stopPropagation()}
                   variant="ghost"
                   size="icon"
                   className="hover:bg-accent/10 hover:text-accent h-8 w-8"
@@ -187,6 +194,7 @@ export const DayCard: React.FC<DayCardProps> = ({ day }) => {
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button
+                  onClick={(e) => e.stopPropagation()}
                   variant="ghost"
                   size="icon"
                   className="hover:bg-destructive/10 hover:text-destructive h-8 w-8"

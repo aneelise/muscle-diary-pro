@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Meal, DiaryEntry, DietContextType } from '@/types/diet';
+import { Meal, DiaryEntry, DietContextType, CustomMealType, FoodSubstitution, DEFAULT_MEAL_TYPES } from '@/types/diet';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -16,6 +16,7 @@ export const useDiet = () => {
 
 export const DietProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [meals, setMeals] = useState<Meal[]>([]);
+  const [customMealTypes, setCustomMealTypes] = useState<CustomMealType[]>([]);
   const [diaryEntries, setDiaryEntries] = useState<DiaryEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
@@ -35,10 +36,45 @@ export const DietProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setIsLoading(true);
       
+      // Load custom meal types
+      const { data: mealTypesData, error: mealTypesError } = await supabase
+        .from('custom_meal_types')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('order_index', { ascending: true });
+      
+      if (mealTypesError) throw mealTypesError;
+      
+      // If no custom meal types exist, create default ones
+      if (!mealTypesData || mealTypesData.length === 0) {
+        const defaultTypes = await Promise.all(
+          DEFAULT_MEAL_TYPES.map(async (type) => {
+            const { data, error } = await supabase
+              .from('custom_meal_types')
+              .insert({
+                user_id: user.id,
+                name: type.name,
+                order_index: type.order_index
+              })
+              .select()
+              .single();
+            
+            if (error) throw error;
+            return data;
+          })
+        );
+        setCustomMealTypes(defaultTypes);
+      } else {
+        setCustomMealTypes(mealTypesData);
+      }
+      
       // Load meals
       const { data: mealsData, error: mealsError } = await supabase
         .from('meals')
-        .select('*')
+        .select(`
+          *,
+          substitutions:food_substitutions(*)
+        `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: true });
       
@@ -64,7 +100,7 @@ export const DietProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   // Meals functions
-  const addMeal = async (meal_type: Meal['meal_type'], food_name: string, quantity: string, time?: string) => {
+  const addMeal = async (meal_type: string, food_name: string, quantity: string, time?: string) => {
     if (!user) return;
 
     try {
@@ -84,7 +120,7 @@ export const DietProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
 
-      setMeals(prev => [...prev, data]);
+      setMeals(prev => [...prev, { ...data, substitutions: [] }]);
       toast({ title: 'Alimento adicionado!' });
     } catch (error) {
       console.error('Error adding meal:', error);
@@ -131,6 +167,153 @@ export const DietProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Error deleting meal:', error);
       toast({ title: 'Erro ao remover alimento', variant: 'destructive' });
+    }
+  };
+
+  // Custom Meal Types functions
+  const addCustomMealType = async (name: string) => {
+    if (!user) return;
+
+    try {
+      const maxOrder = Math.max(...customMealTypes.map(t => t.order_index), -1);
+      
+      const { data, error } = await supabase
+        .from('custom_meal_types')
+        .insert({
+          user_id: user.id,
+          name,
+          order_index: maxOrder + 1
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setCustomMealTypes(prev => [...prev, data]);
+      toast({ title: 'Tipo de refeição adicionado!' });
+    } catch (error) {
+      console.error('Error adding custom meal type:', error);
+      toast({ title: 'Erro ao adicionar tipo de refeição', variant: 'destructive' });
+    }
+  };
+
+  const updateCustomMealType = async (id: string, updates: Partial<CustomMealType>) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('custom_meal_types')
+        .update(updates)
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setCustomMealTypes(prev => prev.map(type => 
+        type.id === id ? { ...type, ...updates } : type
+      ));
+      toast({ title: 'Tipo de refeição atualizado!' });
+    } catch (error) {
+      console.error('Error updating custom meal type:', error);
+      toast({ title: 'Erro ao atualizar tipo de refeição', variant: 'destructive' });
+    }
+  };
+
+  const deleteCustomMealType = async (id: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('custom_meal_types')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setCustomMealTypes(prev => prev.filter(type => type.id !== id));
+      toast({ title: 'Tipo de refeição removido!' });
+    } catch (error) {
+      console.error('Error deleting custom meal type:', error);
+      toast({ title: 'Erro ao remover tipo de refeição', variant: 'destructive' });
+    }
+  };
+
+  // Food Substitutions functions
+  const addFoodSubstitution = async (mealId: string, substituteName: string, quantity: string) => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('food_substitutions')
+        .insert({
+          user_id: user.id,
+          meal_id: mealId,
+          substitute_name: substituteName,
+          quantity
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setMeals(prev => prev.map(meal => 
+        meal.id === mealId 
+          ? { ...meal, substitutions: [...(meal.substitutions || []), data] }
+          : meal
+      ));
+      toast({ title: 'Substituição adicionada!' });
+    } catch (error) {
+      console.error('Error adding food substitution:', error);
+      toast({ title: 'Erro ao adicionar substituição', variant: 'destructive' });
+    }
+  };
+
+  const updateFoodSubstitution = async (id: string, updates: Partial<FoodSubstitution>) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('food_substitutions')
+        .update(updates)
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setMeals(prev => prev.map(meal => ({
+        ...meal,
+        substitutions: meal.substitutions?.map(sub => 
+          sub.id === id ? { ...sub, ...updates } : sub
+        )
+      })));
+      toast({ title: 'Substituição atualizada!' });
+    } catch (error) {
+      console.error('Error updating food substitution:', error);
+      toast({ title: 'Erro ao atualizar substituição', variant: 'destructive' });
+    }
+  };
+
+  const deleteFoodSubstitution = async (id: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('food_substitutions')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setMeals(prev => prev.map(meal => ({
+        ...meal,
+        substitutions: meal.substitutions?.filter(sub => sub.id !== id)
+      })));
+      toast({ title: 'Substituição removida!' });
+    } catch (error) {
+      console.error('Error deleting food substitution:', error);
+      toast({ title: 'Erro ao remover substituição', variant: 'destructive' });
     }
   };
 
@@ -248,11 +431,18 @@ export const DietProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <DietContext.Provider value={{
       meals,
+      customMealTypes,
       diaryEntries,
       isLoading,
       addMeal,
       updateMeal,
       deleteMeal,
+      addCustomMealType,
+      updateCustomMealType,
+      deleteCustomMealType,
+      addFoodSubstitution,
+      updateFoodSubstitution,
+      deleteFoodSubstitution,
       addDiaryEntry,
       updateDiaryEntry,
       deleteDiaryEntry,

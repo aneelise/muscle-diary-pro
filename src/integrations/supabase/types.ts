@@ -41,6 +41,38 @@ export type Database = {
         }
         Relationships: []
       }
+      custom_meal_types: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          order_index: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          order_index: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          order_index?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_meal_types_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       days: {
         Row: {
           date: string | null

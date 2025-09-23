@@ -123,7 +123,7 @@ const Diet = () => {
                 <Apple className="h-4 w-4 text-accent" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-accent">{MEAL_TYPES.length}</div>
+                <div className="text-2xl font-bold text-accent">{customMealTypes.length}</div>
                 <div className="text-xs text-muted-foreground">Refeições</div>
               </div>
             </div>
@@ -136,7 +136,7 @@ const Diet = () => {
               </div>
               <div>
                 <div className="text-2xl font-bold text-success">
-                  {customMealTypes.filter(type => mealsByType[type.id].length > 0).length}
+                  {customMealTypes.filter(type => mealsByType[type.name]?.length > 0).length}
                 </div>
                 <div className="text-xs text-muted-foreground">Configuradas</div>
               </div>
@@ -193,9 +193,9 @@ const Diet = () => {
         <div className="space-y-6">
           {customMealTypes.map((mealType) => (
             <MealSection
-              key={mealType.id}
+              key={mealType.name}
               mealType={mealType}
-              meals={mealsByType[mealType.id]}
+              meals={mealsByType[mealType.name] || []}
             />
           ))}
         </div>

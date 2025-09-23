@@ -36,6 +36,28 @@ export const DietProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setIsLoading(true);
       
+      // Verificar se o usuário existe na tabela usuarios
+      const { data: existingUser, error: userError } = await supabase
+        .from('usuarios')
+        .select('id')
+        .eq('id', user.id)
+        .single();
+
+      // Se o usuário não existe, criar
+      if (userError && userError.code === 'PGRST116') {
+        const { error: insertUserError } = await supabase
+          .from('usuarios')
+          .insert({
+            id: user.id,
+            name: user.user_metadata?.first_name || user.email?.split('@')[0] || 'Usuário',
+            email: user.email
+          });
+        
+        if (insertUserError) {
+          console.error('Error creating user:', insertUserError);
+        }
+      }
+
       // Load custom meal types
       const { data: mealTypesData, error: mealTypesError } = await supabase
         .from('custom_meal_types')

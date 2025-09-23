@@ -105,6 +105,131 @@ export type Database = {
           },
         ]
       }
+      evolution_exercise_sets: {
+        Row: {
+          created_at: string
+          evolution_exercise_id: string
+          id: string
+          reps: number
+          set_number: number
+          user_id: string
+          weight: number
+        }
+        Insert: {
+          created_at?: string
+          evolution_exercise_id: string
+          id?: string
+          reps: number
+          set_number: number
+          user_id: string
+          weight: number
+        }
+        Update: {
+          created_at?: string
+          evolution_exercise_id?: string
+          id?: string
+          reps?: number
+          set_number?: number
+          user_id?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evolution_exercise_sets_evolution_exercise_id_fkey"
+            columns: ["evolution_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "evolution_exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evolution_exercise_sets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      evolution_exercises: {
+        Row: {
+          created_at: string
+          day_of_week: string
+          evolution_week_id: string
+          id: string
+          name: string
+          notes: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: string
+          evolution_week_id: string
+          id?: string
+          name: string
+          notes?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: string
+          evolution_week_id?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evolution_exercises_evolution_week_id_fkey"
+            columns: ["evolution_week_id"]
+            isOneToOne: false
+            referencedRelation: "evolution_weeks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evolution_exercises_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      evolution_weeks: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          order_index: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          order_index?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          order_index?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evolution_weeks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exercises: {
         Row: {
           createdAt: string | null
@@ -151,6 +276,48 @@ export type Database = {
             columns: ["dayId"]
             isOneToOne: false
             referencedRelation: "days"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      food_substitutions: {
+        Row: {
+          created_at: string
+          id: string
+          meal_id: string
+          quantity: string
+          substitute_name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          meal_id: string
+          quantity: string
+          substitute_name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          meal_id?: string
+          quantity?: string
+          substitute_name?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_substitutions_meal_id_fkey"
+            columns: ["meal_id"]
+            isOneToOne: false
+            referencedRelation: "meals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "food_substitutions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
         ]

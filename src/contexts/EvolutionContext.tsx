@@ -36,6 +36,28 @@ export const EvolutionProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     try {
       setIsLoading(true);
       
+      // Verificar se o usuário existe na tabela usuarios
+      const { data: existingUser, error: userError } = await supabase
+        .from('usuarios')
+        .select('id')
+        .eq('id', user.id)
+        .single();
+
+      // Se o usuário não existe, criar
+      if (userError && userError.code === 'PGRST116') {
+        const { error: insertUserError } = await supabase
+          .from('usuarios')
+          .insert({
+            id: user.id,
+            name: user.user_metadata?.first_name || user.email?.split('@')[0] || 'Usuário',
+            email: user.email
+          });
+        
+        if (insertUserError) {
+          console.error('Error creating user:', insertUserError);
+        }
+      }
+
       // Load weeks with exercises and sets
       const { data: weeksData, error: weeksError } = await supabase
         .from('evolution_weeks')

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Utensils, Apple, TrendingUp } from 'lucide-react';
+import { Utensils, Apple, TrendingUp, Plus } from 'lucide-react';
 import { useDiet } from '@/contexts/DietContext';
 import { MealSection } from '@/components/diet/MealSection';
 import { NavBar } from '@/components/layout/NavBar';
@@ -50,7 +50,7 @@ const Diet = () => {
   }
 
   const mealsByType = customMealTypes.reduce((acc, mealType) => {
-    acc[mealType.id] = meals.filter(meal => meal.meal_type === mealType.name);
+    acc[mealType.name] = meals.filter(meal => meal.meal_type === mealType.name);
     return acc;
   }, {} as Record<string, typeof meals>);
 

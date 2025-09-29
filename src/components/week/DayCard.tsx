@@ -126,7 +126,7 @@ export const DayCard: React.FC<DayCardProps> = ({ day }) => {
           <div className="flex items-center gap-2">
             <div className="text-right mr-2">
               <div className="text-xs font-medium text-foreground">
-                {day.exercises.reduce((total, ex) => total + (ex.sets?.length || 1), 0)} série{day.exercises.reduce((total, ex) => total + (ex.sets?.length || 1), 0) !== 1 ? 's' : ''}
+                {day.exercises.reduce((total, ex) => total + (ex.sets || 1), 0)} série{day.exercises.reduce((total, ex) => total + (ex.sets || 1), 0) !== 1 ? 's' : ''}
               </div>
               {day.cardio && day.cardio.length > 0 && (
                 <div className="text-xs text-accent font-medium">

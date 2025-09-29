@@ -110,7 +110,7 @@ export const WeekCard: React.FC<WeekCardProps> = ({ week }) => {
 
   const totalExercises = week.days.reduce((total, day) => 
     total + day.exercises.reduce((exerciseTotal, exercise) => 
-      exerciseTotal + (exercise.sets?.length || 1), 0
+      exerciseTotal + (exercise.sets || 1), 0
     ), 0
   );
   

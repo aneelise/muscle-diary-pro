@@ -28,7 +28,9 @@ export interface Exercise {
   exerciseId: string; // Reference to exercise database
   exerciseName: string;
   muscleGroup: string;
-  sets: ExerciseSet[];
+  sets: number;
+  reps: number;
+  weight: number;
   notes?: string;
   dayId: string;
   createdAt: string;
@@ -56,11 +58,6 @@ export interface WeekContextType {
   addExercise: (dayId: string, exercise: Omit<Exercise, 'id' | 'dayId' | 'createdAt'>) => Promise<void>;
   updateExercise: (exerciseId: string, updates: Partial<Exercise>) => Promise<void>;
   deleteExercise: (exerciseId: string) => Promise<void>;
-  
-  // Exercise Sets
-  addExerciseSet: (exerciseId: string, setNumber: number, reps: number, weight: number) => Promise<void>;
-  updateExerciseSet: (id: string, updates: Partial<ExerciseSet>) => Promise<void>;
-  deleteExerciseSet: (id: string) => Promise<void>;
   
   addCardio: (dayId: string, cardioType: Cardio['cardioType'], durationMinutes: number) => Promise<void>;
   updateCardio: (cardioId: string, updates: Partial<Cardio>) => Promise<void>;

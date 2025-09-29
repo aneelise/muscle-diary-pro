@@ -46,7 +46,7 @@ export const DietProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Se o usuário não existe, criar
       if (userError && userError.code === 'PGRST116') {
         const { error: insertUserError } = await supabase
-          .from('usuarios')
+          .from('users')
           .insert({
             id: user.id,
             name: user.user_metadata?.first_name || user.email?.split('@')[0] || 'Usuário',
@@ -93,14 +93,25 @@ export const DietProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Load meals
       const { data: mealsData, error: mealsError } = await supabase
         .from('meals')
-        .select(`
-          *,
-          substitutions:food_substitutions(*)
-        `)
+        .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: true });
       
       if (mealsError) throw mealsError;
+      
+      // Load food substitutions separately
+      const { data: substitutionsData, error: substitutionsError } = await supabase
+        .from('food_substitutions')
+        .select('*')
+        .eq('user_id', user.id);
+      
+      if (substitutionsError) throw substitutionsError;
+      
+      // Combine meals with their substitutions
+      const mealsWithSubstitutions = (mealsData || []).map(meal => ({
+        ...meal,
+        substitutions: (substitutionsData || []).filter(sub => sub.meal_id === meal.id)
+      }));
       
       // Load diary entries
       const { data: diaryData, error: diaryError } = await supabase
@@ -111,7 +122,7 @@ export const DietProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (diaryError) throw diaryError;
       
-      setMeals(mealsData || []);
+      setMeals(mealsWithSubstitutions);
       setDiaryEntries(diaryData || []);
     } catch (error) {
       console.error('Error loading diet data:', error);

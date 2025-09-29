@@ -36,9 +36,9 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise }) => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   
   // Edit states
-  const [editSets, setEditSets] = useState(exercise.sets.toString());
-  const [editReps, setEditReps] = useState(exercise.reps.toString());
-  const [editWeight, setEditWeight] = useState(exercise.weight.toString());
+  const [editSets, setEditSets] = useState((exercise.sets || 1).toString());
+  const [editReps, setEditReps] = useState((exercise.reps || 1).toString());
+  const [editWeight, setEditWeight] = useState((exercise.weight || 0).toString());
   const [editNotes, setEditNotes] = useState(exercise.notes || '');
 
   const handleEditExercise = (e: React.FormEvent) => {
@@ -101,7 +101,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise }) => {
                 <span>Séries</span>
               </div>
               <div className="text-sm font-bold text-primary">
-                {exercise.sets}
+                {exercise.sets || 1}
               </div>
             </div>
             
@@ -111,7 +111,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise }) => {
                 <span>Reps</span>
               </div>
               <div className="text-sm font-bold text-primary">
-                {exercise.reps}
+                {exercise.reps || 1}
               </div>
             </div>
             
@@ -121,7 +121,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise }) => {
                 <span>Carga</span>
               </div>
               <div className="text-sm font-bold text-accent">
-                {exercise.weight}kg
+                {exercise.weight || 0}kg
               </div>
             </div>
           </div>

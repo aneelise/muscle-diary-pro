@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Weight, Hash, Edit3, Trash2, Target } from 'lucide-react';
+import { Weight, Hash, CreditCard as Edit3, Trash2, Target } from 'lucide-react';
 import { Exercise } from '@/types/week';
 import { useWeek } from '@/contexts/WeekContext';
 import { Button } from '@/components/ui/button';

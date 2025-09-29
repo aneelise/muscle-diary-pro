@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, Calendar, Plus, Edit3, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, Calendar, Plus, CreditCard as Edit3, Trash2 } from 'lucide-react';
 import { Day } from '@/types/week';
 import { useWeek } from '@/contexts/WeekContext';
 import { ExerciseCard } from './ExerciseCard';

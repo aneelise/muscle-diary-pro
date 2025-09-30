@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Edit3, Trash2, Plus, Clock, ChevronDown, ChevronRight } from 'lucide-react';
+import { CreditCard as Edit3, Trash2, Plus, Clock, ChevronDown, ChevronRight } from 'lucide-react';
 import { Meal, FoodSubstitution } from '@/types/diet';
 import { useDiet } from '@/contexts/DietContext';
 import { Button } from '@/components/ui/button';
@@ -69,14 +69,7 @@ export const MealCard: React.FC<MealCardProps> = ({ meal }) => {
   const handleAddSubstitution = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!newSubstituteName.trim() || !newSubstituteQuantity.trim()) {
-      toast({
-        title: "Campos obrigatórios",
-        description: "Por favor, preencha o nome da substituição e a quantidade.",
-        variant: "destructive",
-      });
-      return;
-    }
+    if (!newSubstituteName.trim() || !newSubstituteQuantity.trim()) return;
     
     await addFoodSubstitution(meal.id, newSubstituteName.trim(), newSubstituteQuantity.trim());
     

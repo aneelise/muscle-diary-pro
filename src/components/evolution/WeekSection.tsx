@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, TrendingUp, Plus, Edit3, Trash2, Calendar } from 'lucide-react';
+import { ChevronDown, ChevronRight, TrendingUp, Plus, CreditCard as Edit3, Trash2, Calendar } from 'lucide-react';
 import { EvolutionWeek, DayOfWeek, DAY_LABELS } from '@/types/evolution';
 import { useEvolution } from '@/contexts/EvolutionContext';
 import { DaySection } from './DaySection';
@@ -204,7 +204,7 @@ export const WeekSection: React.FC<WeekSectionProps> = ({ week }) => {
       {/* Expandable Content */}
       {isExpanded && (
         <div className="p-6 space-y-6 animate-fade-in">
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {DAYS_OF_WEEK.map((day) => (
               <DaySection 
                 key={day} 

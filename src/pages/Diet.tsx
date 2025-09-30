@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Utensils, Apple, TrendingUp, Plus } from 'lucide-react';
 import { useDiet } from '@/contexts/DietContext';
 import { MealSection } from '@/components/diet/MealSection';

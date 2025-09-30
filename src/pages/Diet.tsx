@@ -20,6 +20,7 @@ const Diet = () => {
   const { toast } = useToast();
   const [isAddMealTypeDialogOpen, setIsAddMealTypeDialogOpen] = useState(false);
   const [newMealTypeName, setNewMealTypeName] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   const handleAddMealType = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,6 +38,21 @@ const Diet = () => {
     setNewMealTypeName('');
     setIsAddMealTypeDialogOpen(false);
   };
+
+  // Error boundary for diet page
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-primary-lightest/30 to-primary-cream/40 flex items-center justify-center">
+        <div className="text-center space-y-4 p-8">
+          <div className="text-destructive text-lg font-semibold">Erro ao carregar dieta</div>
+          <p className="text-muted-foreground">{error}</p>
+          <Button onClick={() => window.location.reload()}>
+            Tentar novamente
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

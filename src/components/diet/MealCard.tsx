@@ -44,7 +44,14 @@ export const MealCard: React.FC<MealCardProps> = ({ meal }) => {
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!editFoodName.trim() || !editQuantity.trim()) return;
+    if (!editFoodName.trim() || !editQuantity.trim()) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Por favor, preencha o nome do alimento e a quantidade.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     await updateMeal(meal.id, {
       food_name: editFoodName.trim(),
@@ -62,7 +69,14 @@ export const MealCard: React.FC<MealCardProps> = ({ meal }) => {
   const handleAddSubstitution = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!newSubstituteName.trim() || !newSubstituteQuantity.trim()) return;
+    if (!newSubstituteName.trim() || !newSubstituteQuantity.trim()) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Por favor, preencha o nome da substituição e a quantidade.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     await addFoodSubstitution(meal.id, newSubstituteName.trim(), newSubstituteQuantity.trim());
     

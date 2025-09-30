@@ -37,43 +37,95 @@ export const EvolutionProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setIsLoading(true);
       
       // Verificar se o usuário existe na tabela usuarios
-      const { data: existingUser, error: userError } = await supabase
-        .from('users')
-        .select('id')
-        .eq('id', user.id)
-        .single();
-
-      // Se o usuário não existe, criar
-      if (userError && userError.code === 'PGRST116') {
-        const { error: insertUserError } = await supabase
+      try {
+        const { data: existingUser, error: userError } = await supabase
           .from('users')
-          .insert({
-            id: user.id,
-            name: user.user_metadata?.first_name || user.email?.split('@')[0] || 'Usuário',
-            email: user.email
-          });
-        
-        if (insertUserError) {
-          console.error('Error creating user:', insertUserError);
+          .select('id')
+          .eq('id', user.id)
+          .single();
+
+        // Se o usuário não existe, criar
+        if (userError && userError.code === 'PGRST116') {
+          const { error: insertUserError } = await supabase
+            .from('users')
+            .insert({
+              id: user.id,
+              name: user.user_metadata?.first_name || user.email?.split('@')[0] || 'Usuário',
+              email: user.email
+            });
+          
+          if (insertUserError) {
+            console.error('Error creating user:', insertUserError);
+            throw insertUserError;
+          }
         }
+      } catch (userCreationError) {
+        console.warn('User creation error (may already exist):', userCreationError);
       }
 
       // Load weeks with exercises and sets
+      // Load evolution weeks
       const { data: weeksData, error: weeksError } = await supabase
         .from('evolution_weeks')
-        .select(`
-          *,
-          exercises:evolution_exercises(
-            *,
-            sets:evolution_exercise_sets(*)
-          )
-        `)
+        .select('*')
         .eq('user_id', user.id)
         .order('order_index', { ascending: true });
       
       if (weeksError) throw weeksError;
       
-      setWeeks(weeksData || []);
+      // Load exercises for these weeks
+      const weekIds = (weeksData || []).map(w => w.id);
+      let exercisesData: any[] = [];
+      let setsData: any[] = [];
+      
+      if (weekIds.length > 0) {
+        const { data: exData, error: exError } = await supabase
+          .from('evolution_exercises')
+          .select('*')
+          .in('evolution_week_id', weekIds)
+          .eq('user_id', user.id);
+        
+        if (exError) throw exError;
+        exercisesData = exData || [];
+        
+        // Load sets for these exercises
+        const exerciseIds = exercisesData.map(ex => ex.id);
+        if (exerciseIds.length > 0) {
+          const { data: setsDataResult, error: setsError } = await supabase
+            .from('evolution_exercise_sets')
+            .select('*')
+            .in('evolution_exercise_id', exerciseIds)
+            .eq('user_id', user.id);
+          
+          if (setsError) throw setsError;
+          setsData = setsDataResult || [];
+        }
+      }
+      
+      // Group sets by exercise
+      const setsByExercise = setsData.reduce((acc: Record<string, any[]>, set: any) => {
+        acc[set.evolution_exercise_id] = acc[set.evolution_exercise_id] || [];
+        acc[set.evolution_exercise_id].push(set);
+        return acc;
+      }, {});
+      
+      // Group exercises by week
+      const exercisesByWeek = exercisesData.reduce((acc: Record<string, any[]>, ex: any) => {
+        acc[ex.evolution_week_id] = acc[ex.evolution_week_id] || [];
+        acc[ex.evolution_week_id].push({
+          ...ex,
+          sets: setsByExercise[ex.id] || []
+        });
+        return acc;
+      }, {});
+      
+      // Combine weeks with exercises
+      const weeksWithExercises = (weeksData || []).map(week => ({
+        ...week,
+        exercises: exercisesByWeek[week.id] || []
+      }));
+      
+      setWeeks(weeksWithExercises);
       
       // Flatten exercises for backward compatibility
       const allExercises = (weeksData || []).flatMap(week => 

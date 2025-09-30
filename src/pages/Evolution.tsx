@@ -23,6 +23,7 @@ const EvolutionContent: React.FC = () => {
   const [isAddWeekDialogOpen, setIsAddWeekDialogOpen] = useState(false);
   const [weekName, setWeekName] = useState('');
   const [weekDescription, setWeekDescription] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   const handleAddWeek = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +42,21 @@ const EvolutionContent: React.FC = () => {
     setWeekDescription('');
     setIsAddWeekDialogOpen(false);
   };
+
+  // Error boundary for evolution page
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-primary-lightest/30 to-primary-cream/40 flex items-center justify-center">
+        <div className="text-center space-y-4 p-8">
+          <div className="text-destructive text-lg font-semibold">Erro ao carregar evolução</div>
+          <p className="text-muted-foreground">{error}</p>
+          <Button onClick={() => window.location.reload()}>
+            Tentar novamente
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

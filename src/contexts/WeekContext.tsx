@@ -46,7 +46,7 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const init = async () => {
       try {
-        // Primeiro, verificar se o usuário existe na tabela usuarios
+        // Primeiro, verificar se o usuário existe na tabela users
         const { data: existingUser, error: userError } = await supabase
           .from('users')
           .select('id')
@@ -65,6 +65,7 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
           
           if (insertUserError) {
             console.error('Error creating user:', insertUserError);
+            throw insertUserError;
           }
         }
 

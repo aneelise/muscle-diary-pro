@@ -24,13 +24,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 interface ExerciseCardProps {
   exercise: EvolutionExercise;
 }
 
 export const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise }) => {
-  const { updateExercise, deleteExercise, addExerciseSet, updateExerciseSet, deleteExerciseSet } = useEvolution();
+  const { updateExercise, deleteExercise, addExerciseSet, deleteExerciseSet } = useEvolution();
+  const { toast } = useToast();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddSetDialogOpen, setIsAddSetDialogOpen] = useState(false);
   
@@ -45,7 +47,14 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise }) => {
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!editName.trim()) return;
+    if (!editName.trim()) {
+      toast({
+        title: "Nome obrigatório",
+        description: "Por favor, insira um nome para o exercício.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     await updateExercise(exercise.id, {
       name: editName.trim(),
@@ -61,7 +70,14 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise }) => {
     const reps = parseInt(newReps);
     const weight = parseFloat(newWeight);
     
-    if (reps < 1 || weight < 0) return;
+    if (reps < 1 || weight < 0) {
+      toast({
+        title: "Valores inválidos",
+        description: "Por favor, insira valores válidos para repetições e carga.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     const setNumber = exercise.sets.length + 1;
     await addExerciseSet(exercise.id, setNumber, reps, weight);
@@ -81,15 +97,15 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise }) => {
 
   return (
     <div className="workout-card group hover:shadow-md transition-all">
-      <div className="p-4 border-b border-border/30">
+      <div className="p-3 border-b border-border/30">
         <div className="flex items-center justify-between">
           <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <Dumbbell className="h-4 w-4 text-primary" />
-              <h4 className="font-medium text-foreground">{exercise.name}</h4>
+            <div className="flex items-center gap-2 mb-1">
+              <Dumbbell className="h-3 w-3 text-primary" />
+              <h5 className="text-sm font-medium text-foreground">{exercise.name}</h5>
             </div>
             
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <div className="flex items-center gap-4 text-xs text-muted-foreground">
               <span>{exercise.sets.length} série{exercise.sets.length !== 1 ? 's' : ''}</span>
             </div>
           </div>
@@ -100,7 +116,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise }) => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="hover:bg-success/10 hover:text-success h-8 w-8"
+                  className="hover:bg-success/10 hover:text-success h-7 w-7"
                 >
                   <Plus className="h-3 w-3" />
                 </Button>
@@ -164,7 +180,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise }) => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="hover:bg-accent/10 hover:text-accent h-8 w-8"
+                  className="hover:bg-accent/10 hover:text-accent h-7 w-7"
                 >
                   <Edit3 className="h-3 w-3" />
                 </Button>
@@ -218,7 +234,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise }) => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="hover:bg-destructive/10 hover:text-destructive h-8 w-8"
+                  className="hover:bg-destructive/10 hover:text-destructive h-7 w-7"
                 >
                   <Trash2 className="h-3 w-3" />
                 </Button>
@@ -244,52 +260,19 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise }) => {
           </div>
         </div>
       </div>
-      
-      {/* Sets List */}
-      <div className="p-4 space-y-3">
-        {exercise.notes && (
-          <div className="text-xs text-muted-foreground bg-muted/30 p-2 rounded mb-3">
-            {exercise.notes}
-          </div>
-        )}
-        
-        {exercise.sets.length === 0 ? (
+
+      <div className="space-y-2">
+        {exercises.length === 0 ? (
           <div className="text-center py-4 px-4 border border-dashed border-border rounded-lg bg-background/50">
-            <p className="text-sm text-muted-foreground">
-              Nenhuma série cadastrada
+            <Calendar className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
+            <p className="text-xs text-muted-foreground">
+              Nenhum exercício para {DAY_LABELS[dayOfWeek].toLowerCase()}
             </p>
           </div>
         ) : (
-          <div className="space-y-2">
-            <h5 className="text-sm font-medium text-foreground">Séries:</h5>
-            {exercise.sets.map((set, index) => (
-              <div key={set.id} className="flex items-center justify-between p-2 bg-muted/30 rounded-lg">
-                <div className="flex items-center gap-4">
-                  <span className="text-sm font-medium text-foreground">
-                    {index + 1}ª série
-                  </span>
-                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Hash className="h-3 w-3" />
-                      <span>{set.reps} reps</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Weight className="h-3 w-3" />
-                      <span>{set.weight}kg</span>
-                    </div>
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="hover:bg-destructive/10 hover:text-destructive h-6 w-6"
-                  onClick={() => handleDeleteSet(set.id)}
-                >
-                  <Trash2 className="h-3 w-3" />
-                </Button>
-              </div>
-            ))}
-          </div>
+          exercises.map((exercise) => (
+            <ExerciseCard key={exercise.id} exercise={exercise} />
+          ))
         )}
       </div>
     </div>

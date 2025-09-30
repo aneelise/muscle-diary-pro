@@ -36,9 +36,9 @@ export const DietProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setIsLoading(true);
       
-      // Verificar se o usuário existe na tabela usuarios
+      // Verificar se o usuário existe na tabela users
       const { data: existingUser, error: userError } = await supabase
-        .from('usuarios')
+        .from('users')
         .select('id')
         .eq('id', user.id)
         .single();
@@ -55,6 +55,7 @@ export const DietProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (insertUserError) {
           console.error('Error creating user:', insertUserError);
+          throw insertUserError;
         }
       }
 

@@ -28,7 +28,7 @@ export const DietProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
     loadData();
-  }, [user]);
+  }, [user?.id]);
 
   const loadData = async () => {
     if (!user) return;

@@ -28,7 +28,7 @@ export const EvolutionProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       return;
     }
     loadData();
-  }, [user]);
+  }, [user?.id]);
 
   const loadData = async () => {
     if (!user) return;
@@ -314,7 +314,7 @@ export const EvolutionProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   // Exercise Sets functions
-  const addExerciseSet = async (exerciseId: string, setNumber: number, reps: number, weight: number) => {
+  const addExerciseSet = async (exerciseId: string, setNumber: number, reps: number) => {
     if (!user) return;
 
     try {
@@ -324,8 +324,7 @@ export const EvolutionProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           user_id: user.id,
           evolution_exercise_id: exerciseId,
           set_number: setNumber,
-          reps,
-          weight
+          reps
         })
         .select()
         .single();

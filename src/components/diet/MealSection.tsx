@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Utensils } from 'lucide-react';
+import { Plus, Utensils, Trash2 } from 'lucide-react';
 import { Meal, CustomMealType } from '@/types/diet';
 import { useDiet } from '@/contexts/DietContext';
 import { MealCard } from './MealCard';
@@ -13,6 +13,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface MealSectionProps {
   mealType: CustomMealType;
@@ -20,11 +31,15 @@ interface MealSectionProps {
 }
 
 export const MealSection: React.FC<MealSectionProps> = ({ mealType, meals }) => {
-  const { addMeal } = useDiet();
+  const { addMeal, deleteCustomMealType } = useDiet();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [foodName, setFoodName] = useState('');
   const [quantity, setQuantity] = useState('');
   const [time, setTime] = useState('');
+
+  const handleDeleteMealType = async () => {
+    await deleteCustomMealType(mealType.id);
+  };
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,7 +71,8 @@ export const MealSection: React.FC<MealSectionProps> = ({ mealType, meals }) => 
           </div>
         </div>
 
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <div className="flex items-center gap-2">
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button size="sm" className="bg-primary hover:bg-primary/90">
               <Plus className="h-4 w-4 mr-2" />
@@ -119,6 +135,29 @@ export const MealSection: React.FC<MealSectionProps> = ({ mealType, meals }) => 
             </form>
           </DialogContent>
         </Dialog>
+
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button size="sm" variant="destructive">
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir Refeição</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja excluir "{mealTypeLabel}"? Todos os alimentos associados também serão removidos. Esta ação não pode ser desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteMealType} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Excluir
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+        </div>
       </div>
 
       <div className="space-y-3">

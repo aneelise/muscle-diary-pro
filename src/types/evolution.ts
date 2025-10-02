@@ -24,7 +24,6 @@ export interface EvolutionExerciseSet {
   evolution_exercise_id: string;
   set_number: number;
   reps: number;
-  weight: number;
   user_id: string;
   created_at: string;
 }
@@ -87,7 +86,7 @@ export interface EvolutionContextType {
   deleteExercise: (id: string) => Promise<void>;
   
   // Exercise Sets
-  addExerciseSet: (exerciseId: string, setNumber: number, reps: number, weight: number) => Promise<void>;
+  addExerciseSet: (exerciseId: string, setNumber: number, reps: number) => Promise<void>;
   updateExerciseSet: (id: string, updates: Partial<EvolutionExerciseSet>) => Promise<void>;
   deleteExerciseSet: (id: string) => Promise<void>;
   

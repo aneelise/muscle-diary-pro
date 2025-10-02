@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { CreditCard as Edit3, Trash2, Dumbbell, Plus, Weight, Hash } from 'lucide-react';
+import { CreditCard as Edit3, Trash2, Dumbbell, Plus, Hash } from 'lucide-react';
 import { EvolutionExercise, EvolutionExerciseSet } from '@/types/evolution';
 import { useEvolution } from '@/contexts/EvolutionContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
   DialogContent,
@@ -31,16 +32,16 @@ interface ExerciseCardProps {
 
 export const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise }) => {
   const { updateExercise, deleteExercise, addExerciseSet, updateExerciseSet, deleteExerciseSet } = useEvolution();
+  const { toast } = useToast();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddSetDialogOpen, setIsAddSetDialogOpen] = useState(false);
-  
+
   // Edit states
   const [editName, setEditName] = useState(exercise.name);
   const [editNotes, setEditNotes] = useState(exercise.notes || '');
-  
+
   // Add set states
   const [newReps, setNewReps] = useState('');
-  const [newWeight, setNewWeight] = useState('');
 
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,24 +58,22 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise }) => {
 
   const handleAddSet = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const reps = parseInt(newReps);
-    const weight = parseFloat(newWeight);
-    
-    if (reps < 1 || weight < 0) {
+
+    if (reps < 1) {
       toast({
-        title: "Valores inválidos",
-        description: "Por favor, insira valores válidos para repetições e carga.",
+        title: "Valor inválido",
+        description: "Por favor, insira um valor válido para repetições.",
         variant: "destructive",
       });
       return;
     }
-    
+
     const setNumber = exercise.sets.length + 1;
-    await addExerciseSet(exercise.id, setNumber, reps, weight);
-    
+    await addExerciseSet(exercise.id, setNumber, reps);
+
     setNewReps('');
-    setNewWeight('');
     setIsAddSetDialogOpen(false);
   };
 
@@ -119,33 +118,20 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise }) => {
                 </DialogHeader>
                 
                 <form onSubmit={handleAddSet} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2">
-                      <Label htmlFor="newReps">Repetições</Label>
-                      <Input
-                        id="newReps"
-                        type="number"
-                        min="1"
-                        value={newReps}
-                        onChange={(e) => setNewReps(e.target.value)}
-                        placeholder="Ex: 12"
-                        required
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="newWeight">Carga (kg)</Label>
-                      <Input
-                        id="newWeight"
-                        type="number"
-                        min="0"
-                        step="0.5"
-                        value={newWeight}
-                        onChange={(e) => setNewWeight(e.target.value)}
-                        placeholder="Ex: 20"
-                        required
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="newReps">Repetições</Label>
+                    <Input
+                      id="newReps"
+                      type="number"
+                      min="1"
+                      value={newReps}
+                      onChange={(e) => setNewReps(e.target.value)}
+                      placeholder="Ex: 12"
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Cadastre apenas séries e repetições. O peso será registrado na aba "Semanas".
+                    </p>
                   </div>
 
                   <div className="flex gap-2 pt-4">
@@ -279,10 +265,6 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise }) => {
                     <div className="flex items-center gap-1">
                       <Hash className="h-3 w-3" />
                       <span>{set.reps} reps</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Weight className="h-3 w-3" />
-                      <span>{set.weight}kg</span>
                     </div>
                   </div>
                 </div>

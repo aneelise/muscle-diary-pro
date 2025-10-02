@@ -22,7 +22,7 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Load data from Supabase and migrate from localStorage if needed, with fast cache hydration
   useEffect(() => {
-    if (!user) {
+    if (!user?.id) {
       setIsLoading(false);
       return;
     }
@@ -96,7 +96,7 @@ export const WeekProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     init();
-  }, [user]);
+  }, [user?.id]);
 
   const migrateLocalDataToSupabase = async (localWeeks: Week[]) => {
     try {
